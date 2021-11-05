@@ -12,11 +12,22 @@ import java.util.Map.Entry;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
+import map.constructions.Building;
+import map.constructions.City​​;
+import map.constructions.Route;
+import map.ressources.Brick;
+import map.ressources.Grain;
+import map.ressources.Lumber;
+import map.ressources.Ore;
+import map.ressources.Ressource;
+import map.ressources.Wool;
 import util_my.directions.LandCorner;
 import util_my.directions.LandSide;
 
-abstract class Land {
+public abstract class Land {
    protected int number;
+
+   public final static Error CITY_WITHOUT_COLONY_ERROR = new Error();
 
    public final Land[] neighbors = new Land[LandSide.values().length];
 
@@ -38,7 +49,12 @@ abstract class Land {
       this.number = value;
    }
 
+   /**
+    * @throws CITY_WITHOUT_COLONY_ERROR
+    */
    public void setBuilding(LandCorner corner, Building building) {
+      if (building instanceof City​​ && this.buildings[corner.ordinal()] == null)
+         throw CITY_WITHOUT_COLONY_ERROR;
       this.buildings[corner.ordinal()] = building;
       Building.getNewLandLinks(corner).entrySet().stream().forEach((Entry<LandSide, LandCorner> landEntry) -> {
          Land neighbor = this.neighbors[landEntry.getKey().ordinal()];
@@ -51,6 +67,11 @@ abstract class Land {
    public void setRoute(LandSide side, Route route) {
       this.routes[side.ordinal()] = route;
       this.neighbors[side.ordinal()].routes[side.getOpposite().ordinal()] = route;
+
+      route.adjacentsRouteClockwise = this.routes[side.getCornerClockwise().ordinal()];
+      route.adjacentsRouteCounterClockwise = this.routes[side.getCornerCounterClockwise().ordinal()];
+      route.adjacentsBuildingClockwise = this.buildings[side.getSideClockwise().ordinal()];
+      route.adjacentsBuildingCounterClockwise = this.buildings[side.getSideCounterClockwise().ordinal()];
    }
 
    @Override

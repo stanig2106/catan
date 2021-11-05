@@ -8,6 +8,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import config.Config;
+import player.moves.Move;
 import util_my.Box;
 import util_my.Coord;
 import util_my.HexagonalGrids;
@@ -59,6 +60,9 @@ public class Map extends HexagonalGrids<Land> {
             this.get(c).setNeighbor(side, this.get(AdjacentCoord));
          });
       });
+   }
+
+   public void apply(Move move) {
    }
 
    @Override

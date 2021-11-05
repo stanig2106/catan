@@ -1,30 +1,22 @@
-package map;
+package map.constructions;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import map.Land;
 import player.Player;
 import util_my.directions.BuildingAdjacent;
 import util_my.directions.LandCorner;
 import util_my.directions.LandSide;
 
-abstract class Construction {
-   public final Player owner;
-
-   Construction(Player owner) {
-      this.owner = owner;
-   }
-}
-
-abstract class Building extends Construction {
+public abstract class Building extends Construction {
    final Land[] adjacentLands = new Land[BuildingAdjacent.values().length];
 
    Building(Player owner) {
       super(owner);
-
    }
 
-   static Map<LandSide, LandCorner> getNewLandLinks(LandCorner corner) {
+   public static Map<LandSide, LandCorner> getNewLandLinks(LandCorner corner) {
       Map<LandSide, LandCorner> res = new HashMap<LandSide, LandCorner>();
 
       switch (corner) {
@@ -55,25 +47,5 @@ abstract class Building extends Construction {
       default:
          throw new Error("unknown corner");
       }
-   }
-}
-
-class Colony extends Building {
-   Colony(Player owner) {
-      super(owner);
-   }
-}
-
-class City​​Hall extends Building {
-   City​​Hall(Player owner) {
-      super(owner);
-   }
-}
-
-class Route extends Construction {
-   final Construction[] adjacents = new Construction[2];
-
-   Route(Player owner) {
-      super(owner);
    }
 }
