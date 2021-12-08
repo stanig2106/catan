@@ -7,40 +7,53 @@
 package map;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Map.Entry;
-import java.util.function.Supplier;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
+import map.Land.BUILD.ROUTE_ON_ROUTE;
 import map.constructions.Building;
 import map.constructions.City​​;
+import map.constructions.Colony;
 import map.constructions.Route;
-import map.ressources.Brick;
-import map.ressources.Grain;
-import map.ressources.Lumber;
-import map.ressources.Ore;
-import map.ressources.Ressource;
-import map.ressources.Wool;
+import map.ressources.Ressources;
 import util_my.directions.LandCorner;
 import util_my.directions.LandSide;
 
 public abstract class Land {
    protected int number;
+   private final Optional<Ressources> produce;
+   public final Map<LandSide, Optional<Land>> neighbors = new HashMap<LandSide, Optional<Land>>() {
+      {
+         Stream.of(LandSide.values()).forEach((landSide) -> this.put(landSide, Optional.empty()));
+      
+   }};
+   public final Map<LandSide, Optional<Route>> routes = new HashMap<LandSide, Optional<Route>>() {
+      {
+         Stream.of(LandSide.values()).forEach((landSide) -> this.put(landSide, Optional.empty()));
+      
+   }};
+   public final Map<LandCorner, Optional<Building>> buildings = new HashMap<LandCorner, Optional<Building>>() {
+      {
+         Stream.of(LandCorner.values()).forEach((landCorner) -> this.put(landCorner, Optional.empty()));
+      
+   }};
 
-   public final static Error CITY_WITHOUT_COLONY_ERROR = new Error();
-
-   public final Land[] neighbors = new Land[LandSide.values().length];
-
-   public final Route[] routes = new Route[LandSide.values().length];
-   public final Building[] buildings = new Building[LandCorner.values().length];
-
-   public void setNeighbor(LandSide side, Land newNeighbor) {
-      this.neighbors[side.ordinal()] = newNeighbor;
-      newNeighbor.neighbors[side.getOpposite().ordinal()] = this;
+   Land(Optional<Ressources> produce) {
+      this.produce = produce;
    }
 
-   public Land getNeighbor(LandSide side) {
-      return this.neighbors[side.ordinal()];
+   public void setNeighbor(LandSide side, Land newNeighbor) {
+      this.neighbors.replace(side, Optional.of(newNeighbor));
+      newNeighbor.neighbors.replace(side.getOpposite(), Optional.of(this));
+   }
+
+   public Optional<Land> getNeighbor(LandSide side) {
+      return this.neighbors.get(side);
    }
 
    public void setNumber(int value) {
@@ -49,82 +62,130 @@ public abstract class Land {
       this.number = value;
    }
 
-   /**
-    * @throws CITY_WITHOUT_COLONY_ERROR
-    */
-   public void setBuilding(LandCorner corner, Building building) {
-      if (building instanceof City​​ && this.buildings[corner.ordinal()] == null)
-         throw CITY_WITHOUT_COLONY_ERROR;
-      this.buildings[corner.ordinal()] = building;
-      Building.getNewLandLinks(corner).entrySet().stream().forEach((Entry<LandSide, LandCorner> landEntry) -> {
-         Land neighbor = this.neighbors[landEntry.getKey().ordinal()];
-         if (neighbor == null)
-            return;
-         neighbor.buildings[landEntry.getValue().ordinal()] = building;
-      });
+   public void setBuilding(LandCorner corner, Building building) throws BUILD {
+      this.trowIfIllegalBuild(this.buildings.get(corner), building);
+      
+      this.buildings.replace(corner, Optional.of(building));
+      Building.getLandLinks(corner).entrySet().stream().forEach((Entry<LandSide, LandCorner> landEntry) -> {
+         this.neighbors.get(landEntry.getKey()).ifPresent((neighbor) -> {
+            neighbor.buildings.replace(landEntry.getValue(), Optional.of(building));
+         });
+      }); 
    }
 
-   public void setRoute(LandSide side, Route route) {
-      this.routes[side.ordinal()] = route;
-      this.neighbors[side.ordinal()].routes[side.getOpposite().ordinal()] = route;
-
-      route.adjacentsRouteClockwise = this.routes[side.getCornerClockwise().ordinal()];
-      route.adjacentsRouteCounterClockwise = this.routes[side.getCornerCounterClockwise().ordinal()];
-      route.adjacentsBuildingClockwise = this.buildings[side.getSideClockwise().ordinal()];
-      route.adjacentsBuildingCounterClockwise = this.buildings[side.getSideCounterClockwise().ordinal()];
+   private void trowIfIllegalBuild(Optional<Building> oldBuilding, Building newBuilding) throws BUILD {
+      if (oldBuilding.isEmpty()) {
+         if (newBuilding instanceof City​​)
+            throw new BUILD.CITY_WITHOUT_COLONY();
+         return;
+      }
+      if (newBuilding instanceof City​​)
+         throw new BUILD.BUILDING_ON_CITY();    
+      if (oldBuilding.get() instanceof Colony && newBuilding instanceof Colony)
+            throw new BUILD.COLONY_ON_COLONY();
    }
+
+   public void setRoute(LandSide side, Route route) throws ROUTE_ON_ROUTE {
+      if (this.routes.get(side).isPresent())
+         throw new BUILD.ROUTE_ON_ROUTE();
+      this.routes.replace(side, Optional.of(route));
+      this.neighbors.get(side).ifPresent((neighbor) -> neighbor.routes.replace(side.getOpposite(), Optional.of(route)));
+
+      route.adjacentsRouteClockwise = this.routes.get(side.getSideClockwise());
+      route.adjacentsRouteCounterClockwise = this.routes.get(side.getSideCounterClockwise());
+      route.adjacentsBuildingClockwise = this.buildings.get(side.getCornerClockwise());
+      route.adjacentsBuildingCounterClockwise = this.buildings.get(side.getCornerCounterClockwise());
+   }
+
+   public boolean isProducerLand() {
+      return this.produce.isPresent();
+   }
+
+   public List<Ressources> getRessource() throws LAND_DONT_PRODUCE {
+      if (this.produce.isEmpty())
+         throw new LAND_DONT_PRODUCE();
+      List<Ressources> res = new ArrayList<Ressources>();
+      IntStream.range(0, this.number).forEach((__) -> res.add(this.produce.get()));
+      return res;
+   }
+
 
    @Override
    public String toString() {
       return "" + this.getClass().getName().charAt(4) + this.number;
    }
-}
 
-abstract class ProducingLand<T extends Ressource> extends Land {
-   protected Supplier<T> T_new;
-
-   ProducingLand(Supplier<T> RessourceGen) {
-      this.T_new = RessourceGen;
+   // class Exception
+   public static class LAND_DONT_PRODUCE extends Exception {
+      LAND_DONT_PRODUCE() {
+         super();
+      }
    }
 
-   public List<T> getRessource() {
-      List<T> res = new ArrayList<T>();
-      IntStream.range(0, this.number).forEach((__) -> res.add((T) this.T_new.get()));
-      return res;
+   public static class BUILD extends Exception {
+      BUILD() {
+         super();
+      }
+
+      public static class CITY_WITHOUT_COLONY extends BUILD {
+         CITY_WITHOUT_COLONY() {
+            super();
+         }
+      }
+
+      public static class ROUTE_ON_ROUTE extends BUILD {
+         ROUTE_ON_ROUTE() {
+            super();
+         }
+      }
+
+      public static class BUILDING_ON_CITY extends BUILD {
+         BUILDING_ON_CITY() {
+            super();
+         }
+      }
+   
+      public static class COLONY_ON_COLONY extends BUILD {
+         COLONY_ON_COLONY() {
+            super();
+         }
+      }
    }
 }
 
-class Hill extends ProducingLand<Brick> {
+class Hill extends Land {
    Hill() {
-      super(Brick::new);
+      super(Optional.of(Ressources.Brick));
    }
 }
 
-class Forest extends ProducingLand<Lumber> {
+class Forest extends Land {
    Forest() {
-      super(Lumber::new);
+      super(Optional.of(Ressources.Lumber));
    }
 
 }
 
-class Mountain extends ProducingLand<Ore> {
+class Mountain extends Land {
    Mountain() {
-      super(Ore::new);
+      super(Optional.of(Ressources.Ore));
    }
 }
 
-class Field extends ProducingLand<Grain> {
+class Field extends Land {
    Field() {
-      super(Grain::new);
+      super(Optional.of(Ressources.Grain));
    }
 }
 
-class Pasture extends ProducingLand<Wool> {
+class Pasture extends Land {
    Pasture() {
-      super(Wool::new);
+      super(Optional.of(Ressources.Wool));
    }
 }
 
 class Desert extends Land {
-
+   Desert() {
+      super(Optional.empty());
+   }
 }

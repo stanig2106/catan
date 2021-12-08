@@ -1,48 +1,39 @@
 package player.moves;
 
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.function.Function;
 
 import map.Land;
+import map.Land.BUILD;
+import map.Land.BUILD.ROUTE_ON_ROUTE;
 import map.constructions.City​​;
 import map.constructions.Colony;
 import map.constructions.Construction;
 import map.constructions.Route;
-
+import map.ressources.Cost;
 import player.Player;
+import player.Player.NOT_ENOUGH_RESSOURCES;
 import util_my.directions.LandCorner;
 import util_my.directions.LandSide;
 
-interface BuildMove {
-   public void setConstruction();
-}
-
-public abstract class Build<T extends Construction> extends Move implements BuildMove {
-   public Map<Integer, Integer> cost;
+public abstract class Build<T extends Construction> extends Move {
+   public Cost cost;
    Function<Player, T> T_new;
 
-   public Build(Player player, Map<Integer, Integer> cost, Function<Player, T> BuildedConstruction) {
+   public Build(Player player, Cost cost, Function<Player, T> BuildedConstruction) {
       super(player);
       this.cost = cost;
       this.T_new = BuildedConstruction;
    }
 
-   public boolean havePlayerEnoughRessource() {
-      for (Entry<Integer, Integer> test : this.cost.entrySet())
-         if (!this.player.haveEnough(test.getKey(), test.getValue()))
-            return false;
-      return true;
-   }
-
-   public void pay() {
-      for (Entry<Integer, Integer> costEntry : this.cost.entrySet())
-         this.player.pay(costEntry.getKey(), costEntry.getValue());
+   public void pay() throws NOT_ENOUGH_RESSOURCES {
+      this.player.pay(this.cost);
    }
 
    public T getConstruction() {
       return T_new.apply(this.player);
    };
+
+   public abstract void setConstruction() throws ROUTE_ON_ROUTE, BUILD;
 }
 
 class BuildRoute extends Build<Route> {
@@ -56,7 +47,7 @@ class BuildRoute extends Build<Route> {
       this.positionSide = positionSide;
    }
 
-   public void setConstruction() {
+   public void setConstruction() throws ROUTE_ON_ROUTE {
       this.position.setRoute(this.positionSide, this.getConstruction());
    }
 }
@@ -72,8 +63,9 @@ class BuildColony extends Build<Colony> {
       this.positionCorner = positionCorner;
    }
 
-   public void setConstruction() {
+   public void setConstruction() throws BUILD {
       this.position.setBuilding(positionCorner, this.getConstruction());
+      
    }
 }
 
@@ -88,7 +80,7 @@ class BuildCity extends Build<City​​> {
       this.positionCorner = positionCorner;
    }
 
-   public void setConstruction() {
+   public void setConstruction() throws BUILD {
       this.position.setBuilding(positionCorner, this.getConstruction());
    }
 }

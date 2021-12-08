@@ -1,24 +1,23 @@
 package map.constructions;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Optional;
 
-import map.ressources.Brick;
-import map.ressources.Lumber;
+import map.ressources.Cost;
+import map.ressources.Ressources;
 import player.Player;
 
 public class Route extends Construction {
-   public Building adjacentsBuildingClockwise;
-   public Building adjacentsBuildingCounterClockwise;
-   public Route adjacentsRouteClockwise;
-   public Route adjacentsRouteCounterClockwise;
+   public Optional<Building> adjacentsBuildingClockwise;
+   public Optional<Building> adjacentsBuildingCounterClockwise;
+   public Optional<Route> adjacentsRouteClockwise;
+   public Optional<Route> adjacentsRouteCounterClockwise;
 
-   public final static Map<Integer, Integer> cost = new HashMap<Integer, Integer>();
+   public final static Cost cost = new Cost();
 
    public Route(Player owner) {
       super(owner);
 
-      Route.cost.put(Brick.ressourceCode, 1);
-      Route.cost.put(Lumber.ressourceCode, 1);
+      Route.cost.set(Ressources.Brick, 1);
+      Route.cost.set(Ressources.Lumber, 1);
    }
 }

@@ -133,6 +133,7 @@ public enum LandSide {
          return LandCorner.bottom;
       case bottomRight:
          return LandCorner.bottomRight;
+
       default:
          throw new Error("Unknown side");
       }

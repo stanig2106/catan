@@ -8,19 +8,18 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import config.Config;
-import player.moves.Move;
 import util_my.Box;
 import util_my.Coord;
 import util_my.HexagonalGrids;
 import util_my.directions.LandSide;
 
-public class Map extends HexagonalGrids<Land> {
-   public Map() {
+public class CataneMap extends HexagonalGrids<Land> {
+   public CataneMap() {
       super(Config.mapRadius);
    }
 
    public void initRandomLand() {
-      Queue<Land> lands = Map.getRandomLands(this.numberOfCase());
+      Queue<Land> lands = CataneMap.getRandomLands(this.numberOfCase());
       this.forEachCoordinate((Coord c) -> this.set(c, lands.remove()));
       this.linkAllLand();
    }
@@ -60,9 +59,6 @@ public class Map extends HexagonalGrids<Land> {
             this.get(c).setNeighbor(side, this.get(AdjacentCoord));
          });
       });
-   }
-
-   public void apply(Move move) {
    }
 
    @Override

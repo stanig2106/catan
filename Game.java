@@ -1,4 +1,5 @@
-import map.Map;
+import gameVariables.GameVariables;
+import map.CataneMap;
 
 /**
  * Catane
@@ -9,8 +10,8 @@ import map.Map;
  */
 public class Game {
    public static void main(String[] args) {
-      Map map = new Map();
-      map.initRandomLand();
-      System.out.println(map);
+      GameVariables.map = new CataneMap();
+      GameVariables.map.initRandomLand();
+      System.out.println(GameVariables.map);
    }
 }

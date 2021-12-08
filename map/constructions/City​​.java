@@ -1,24 +1,19 @@
 package map.constructions;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import map.ressources.Brick;
-import map.ressources.Grain;
-import map.ressources.Lumber;
-import map.ressources.Wool;
+import map.ressources.Cost;
+import map.ressources.Ressources;
 import player.Player;
 
 public class City​​ extends Building {
 
-   public final static Map<Integer, Integer> cost = new HashMap<Integer, Integer>();
+   public final static Cost cost = new Cost();
 
    public City​​(Player owner) {
       super(owner);
 
-      City​​.cost.put(Brick.ressourceCode, 1);
-      City​​.cost.put(Lumber.ressourceCode, 1);
-      City​​.cost.put(Wool.ressourceCode, 1);
-      City​​.cost.put(Grain.ressourceCode, 1);
+      City​​.cost.set(Ressources.Brick, 1);
+      City​​.cost.set(Ressources.Lumber, 1);
+      City​​.cost.set(Ressources.Wool, 1);
+      City​​.cost.set(Ressources.Grain, 1);
    }
 }
