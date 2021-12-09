@@ -13,5 +13,7 @@ public class Game {
       GameVariables.map = new CataneMap();
       GameVariables.map.initRandomLand();
       System.out.println(GameVariables.map);
+
+      GameVariables.map.forEach(land -> System.out.println(land.toStringAll()));
    }
 }

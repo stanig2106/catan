@@ -115,6 +115,17 @@ public abstract class Land {
       return "" + this.getClass().getName().charAt(4) + this.number;
    }
 
+   public String toStringAll() {
+      
+      return "" + this.getClass().getName().charAt(4) + this.number + " : " +
+      "\nNeighbors : " + String.join(", ", this.neighbors.values().stream().map(neighbor -> neighbor.isEmpty() ? "" : neighbor.get().toString()).toArray(String[]::new)) +
+            "\nBuilding : " + String.join(", ", this.buildings.values().stream()
+                  .map(building -> building.isEmpty() ? "" : building.get().toString()).toArray(String[]::new)) + 
+            "\nRoutes : " + String.join(", ", this.routes.values().stream()
+                  .map(route -> route.isEmpty() ? "" : route.get().toString()).toArray(String[]::new)) + "\n";
+
+   }
+
    // class Exception
    public static class LAND_DONT_PRODUCE extends Exception {
       LAND_DONT_PRODUCE() {

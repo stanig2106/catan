@@ -98,6 +98,13 @@ public class HexagonalGrids<T> {
                callback.accept(new Coord(x, y));
    }
 
+   public void forEach(Consumer<T> callback) {
+      for (int y = -1 * this.radius; y <= this.radius; y++)
+         for (int x = -1 * this.radius; x <= this.radius; x++)
+            if (this.isValidCoordinate(new Coord(x, y)))
+               callback.accept(this.get(new Coord(x, y)));
+   }
+
    public void forEachLine(Consumer<List<T>> callback) {
       List<T> acceptList = new ArrayList<T>();
       for (int y = -1 * this.radius; y <= this.radius; y++) {

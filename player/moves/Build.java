@@ -11,7 +11,6 @@ import map.constructions.Construction;
 import map.constructions.Route;
 import map.ressources.Cost;
 import player.Player;
-import player.Player.NOT_ENOUGH_RESSOURCES;
 import util_my.directions.LandCorner;
 import util_my.directions.LandSide;
 
@@ -25,7 +24,7 @@ public abstract class Build<T extends Construction> extends Move {
       this.T_new = BuildedConstruction;
    }
 
-   public void pay() throws NOT_ENOUGH_RESSOURCES {
+   public void pay() throws player.Inventory.NOT_ENOUGH_RESSOURCES {
       this.player.pay(this.cost);
    }
 
