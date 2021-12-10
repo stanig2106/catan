@@ -52,11 +52,8 @@ public class CataneMap extends HexagonalGrids<Land> {
 
    private void linkAllLand() {
       this.forEachCoordinate((Coord c) -> {
-         Stream.of(LandSide.values()).forEach((LandSide side) -> {
-            Coord AdjacentCoord = side.offsetCoord(c);
-            if (!this.isValidCoordinate(AdjacentCoord))
-               return;
-            this.get(c).setNeighbor(side, this.get(AdjacentCoord));
+         this.forEachAdjacent(c, (neighbor, side) -> {
+            this.get(c).setNeighbor(side, neighbor);
          });
       });
    }

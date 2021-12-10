@@ -37,37 +37,4 @@ public abstract class Building extends Construction {
       }));
       return res;
    }
-
-   public static Map<LandSide, LandCorner> getLandLinks(LandCorner corner) {
-      Map<LandSide, LandCorner> res = new HashMap<LandSide, LandCorner>();
-
-      switch (corner) {
-      case top:
-         res.put(LandSide.topLeft, LandCorner.bottomRight);
-         res.put(LandSide.topRight, LandCorner.bottomLeft);
-         return res;
-      case bottom:
-         res.put(LandSide.bottomLeft, LandCorner.topLeft);
-         res.put(LandSide.bottomRight, LandCorner.topRight);
-         return res;
-      case topLeft:
-         res.put(LandSide.topLeft, LandCorner.bottom);
-         res.put(LandSide.left, LandCorner.topRight);
-         return res;
-      case topRight:
-         res.put(LandSide.topRight, LandCorner.bottom);
-         res.put(LandSide.right, LandCorner.topLeft);
-         return res;
-      case bottomLeft:
-         res.put(LandSide.bottomLeft, LandCorner.top);
-         res.put(LandSide.left, LandCorner.bottomRight);
-         return res;
-      case bottomRight:
-         res.put(LandSide.bottomRight, LandCorner.top);
-         res.put(LandSide.right, LandCorner.bottomLeft);
-         return res;
-      default:
-         throw new Error("unknown corner");
-      }
-   }
 }

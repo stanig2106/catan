@@ -35,13 +35,15 @@ public abstract class Player {
          ((LunchDices) move).dicesResult();
       }
    }
-}
 
-class RealPlayer extends Player {
-   void askMoveOnConsole() {
+
+   public static class RealPlayer extends Player {
+      void askMoveOnConsole() {
+      }
+   }
+   
+   public static class IA extends Player {
+   
    }
 }
 
-class IA extends Player {
-
-}

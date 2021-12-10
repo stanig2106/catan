@@ -27,20 +27,19 @@ import util_my.directions.LandSide;
 public abstract class Land {
    protected int number;
    private final Optional<Ressources> produce;
-   public final Map<LandSide, Optional<Land>> neighbors = new HashMap<LandSide, Optional<Land>>() {
+   private final Map<LandSide, Optional<Land>> neighbors = new HashMap<LandSide, Optional<Land>>() {
       {
          Stream.of(LandSide.values()).forEach((landSide) -> this.put(landSide, Optional.empty()));
       
    }};
-   public final Map<LandSide, Optional<Route>> routes = new HashMap<LandSide, Optional<Route>>() {
+   private final Map<LandSide, Border> borders = new HashMap<LandSide, Border>() {
       {
-         Stream.of(LandSide.values()).forEach((landSide) -> this.put(landSide, Optional.empty()));
+         Stream.of(LandSide.values()).forEach((landSide) -> this.put(landSide, null));
       
    }};
-   public final Map<LandCorner, Optional<Building>> buildings = new HashMap<LandCorner, Optional<Building>>() {
+   private final Map<LandCorner, Corner> corners = new HashMap<LandCorner, Corner>() {
       {
-         Stream.of(LandCorner.values()).forEach((landCorner) -> this.put(landCorner, Optional.empty()));
-      
+         Stream.of(LandCorner.values()).forEach((landCorner) -> this.put(landCorner, null));
    }};
 
    Land(Optional<Ressources> produce) {
@@ -50,6 +49,46 @@ public abstract class Land {
    public void setNeighbor(LandSide side, Land newNeighbor) {
       this.neighbors.replace(side, Optional.of(newNeighbor));
       newNeighbor.neighbors.replace(side.getOpposite(), Optional.of(this));
+
+      Border border;
+      if ((border = newNeighbor.borders.get(side.getOpposite())) == null)
+         this.borders.replace(side, new Border());
+      else
+         this.borders.replace(side, border);
+
+      Corner cornerNewNeighbor = newNeighbor.corners.get(side.getOpposite().getCornerCounterClockwise());
+      Corner cornerOtherNeighbor = this.neighbors.get(side.getSideClockwise()).map((otherNeighbor) -> {
+         return otherNeighbor.corners.get(side.getSideClockwise().getOpposite().getCornerClockwise());
+      }).orElse(null);
+      if (cornerNewNeighbor == null && cornerOtherNeighbor == null)
+         this.corners.replace(side.getCornerClockwise(), new Corner());
+      else if (cornerNewNeighbor != null)
+         this.corners.replace(side.getCornerClockwise(), cornerNewNeighbor);
+      else 
+         this.corners.replace(side.getCornerClockwise(), cornerOtherNeighbor);
+         
+      cornerNewNeighbor = newNeighbor.corners.get(side.getOpposite().getCornerClockwise());
+      cornerOtherNeighbor = this.neighbors.get(side.getSideCounterClockwise()).map((otherNeighbor) -> {
+         return otherNeighbor.corners.get(side.getSideCounterClockwise().getOpposite().getCornerCounterClockwise());
+      }).orElse(null);
+      if (cornerNewNeighbor == null && cornerOtherNeighbor == null)
+         this.corners.replace(side.getCornerCounterClockwise(), new Corner());
+      else if (cornerNewNeighbor != null)
+         this.corners.replace(side.getCornerCounterClockwise(), cornerNewNeighbor);
+      else 
+         this.corners.replace(side.getCornerCounterClockwise(), cornerOtherNeighbor);
+   }
+   
+   public void debug() {
+      System.out.println(this.corners.get(LandCorner.bottomRight));
+   }
+   
+   public void debug2() {
+      System.out.println(this.corners.get(LandCorner.topLeft));
+   }
+
+   public void debug3() {
+      System.out.println(this.corners.get(LandCorner.topRight));
    }
 
    public Optional<Land> getNeighbor(LandSide side) {
@@ -63,14 +102,12 @@ public abstract class Land {
    }
 
    public void setBuilding(LandCorner corner, Building building) throws BUILD {
-      this.trowIfIllegalBuild(this.buildings.get(corner), building);
-      
-      this.buildings.replace(corner, Optional.of(building));
-      Building.getLandLinks(corner).entrySet().stream().forEach((Entry<LandSide, LandCorner> landEntry) -> {
-         this.neighbors.get(landEntry.getKey()).ifPresent((neighbor) -> {
-            neighbor.buildings.replace(landEntry.getValue(), Optional.of(building));
-         });
-      }); 
+      this.trowIfIllegalBuild(this.corners.get(corner).building, building);
+      this.corners.get(corner).building = Optional.of(building);
+   }
+
+   public Optional<Building> getBuilding(LandCorner corner) {
+      return this.corners.get(corner).building;
    }
 
    private void trowIfIllegalBuild(Optional<Building> oldBuilding, Building newBuilding) throws BUILD {
@@ -86,16 +123,15 @@ public abstract class Land {
    }
 
    public void setRoute(LandSide side, Route route) throws ROUTE_ON_ROUTE {
-      if (this.routes.get(side).isPresent())
+      if (this.borders.get(side).route.isPresent())
          throw new BUILD.ROUTE_ON_ROUTE();
-      this.routes.replace(side, Optional.of(route));
-      this.neighbors.get(side).ifPresent((neighbor) -> neighbor.routes.replace(side.getOpposite(), Optional.of(route)));
-
-      route.adjacentsRouteClockwise = this.routes.get(side.getSideClockwise());
-      route.adjacentsRouteCounterClockwise = this.routes.get(side.getSideCounterClockwise());
-      route.adjacentsBuildingClockwise = this.buildings.get(side.getCornerClockwise());
-      route.adjacentsBuildingCounterClockwise = this.buildings.get(side.getCornerCounterClockwise());
+      this.borders.get(side).route = Optional.of(route);
    }
+
+   public Optional<Route> getRoute(LandSide side) {
+      return this.borders.get(side).route;
+   }
+
 
    public boolean isProducerLand() {
       return this.produce.isPresent();
@@ -113,17 +149,6 @@ public abstract class Land {
    @Override
    public String toString() {
       return "" + this.getClass().getName().charAt(4) + this.number;
-   }
-
-   public String toStringAll() {
-      
-      return "" + this.getClass().getName().charAt(4) + this.number + " : " +
-      "\nNeighbors : " + String.join(", ", this.neighbors.values().stream().map(neighbor -> neighbor.isEmpty() ? "" : neighbor.get().toString()).toArray(String[]::new)) +
-            "\nBuilding : " + String.join(", ", this.buildings.values().stream()
-                  .map(building -> building.isEmpty() ? "" : building.get().toString()).toArray(String[]::new)) + 
-            "\nRoutes : " + String.join(", ", this.routes.values().stream()
-                  .map(route -> route.isEmpty() ? "" : route.get().toString()).toArray(String[]::new)) + "\n";
-
    }
 
    // class Exception

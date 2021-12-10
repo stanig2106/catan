@@ -1,9 +1,15 @@
 package util_my.directions;
 
+import java.util.stream.Stream;
+
 import util_my.Coord;
 
 public enum LandSide {
    topLeft, topRight, right, left, bottomLeft, bottomRight;
+
+   public static Stream<LandSide> stream() {
+      return Stream.of(LandSide.values());
+   }
 
    public Coord offsetCoord(Coord c) {
       switch (this) {
