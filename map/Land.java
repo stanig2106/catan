@@ -11,16 +11,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Map.Entry;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import gameVariables.GameVariables;
 import map.Land.BUILD.ROUTE_ON_ROUTE;
 import map.constructions.Building;
 import map.constructions.City​​;
 import map.constructions.Colony;
 import map.constructions.Route;
 import map.ressources.Ressources;
+import player.plays.Build;
 import util_my.directions.LandCorner;
 import util_my.directions.LandSide;
 
@@ -56,39 +57,34 @@ public abstract class Land {
       else
          this.borders.replace(side, border);
 
+      Corner corner;
+
       Corner cornerNewNeighbor = newNeighbor.corners.get(side.getOpposite().getCornerCounterClockwise());
       Corner cornerOtherNeighbor = this.neighbors.get(side.getSideClockwise()).map((otherNeighbor) -> {
          return otherNeighbor.corners.get(side.getSideClockwise().getOpposite().getCornerClockwise());
       }).orElse(null);
       if (cornerNewNeighbor == null && cornerOtherNeighbor == null)
-         this.corners.replace(side.getCornerClockwise(), new Corner());
+         corner = new Corner();
       else if (cornerNewNeighbor != null)
-         this.corners.replace(side.getCornerClockwise(), cornerNewNeighbor);
+      corner = cornerNewNeighbor;
       else 
-         this.corners.replace(side.getCornerClockwise(), cornerOtherNeighbor);
-         
+      corner = cornerOtherNeighbor;
+      this.corners.replace(side.getCornerClockwise(), corner);
+      corner.adjacentLands.add(this);
+      
       cornerNewNeighbor = newNeighbor.corners.get(side.getOpposite().getCornerClockwise());
       cornerOtherNeighbor = this.neighbors.get(side.getSideCounterClockwise()).map((otherNeighbor) -> {
          return otherNeighbor.corners.get(side.getSideCounterClockwise().getOpposite().getCornerCounterClockwise());
       }).orElse(null);
-      if (cornerNewNeighbor == null && cornerOtherNeighbor == null)
-         this.corners.replace(side.getCornerCounterClockwise(), new Corner());
+      if (cornerNewNeighbor == null && cornerOtherNeighbor == null) 
+         corner = new Corner();
       else if (cornerNewNeighbor != null)
-         this.corners.replace(side.getCornerCounterClockwise(), cornerNewNeighbor);
+         corner = cornerNewNeighbor;
       else 
-         this.corners.replace(side.getCornerCounterClockwise(), cornerOtherNeighbor);
-   }
-   
-   public void debug() {
-      System.out.println(this.corners.get(LandCorner.bottomRight));
-   }
-   
-   public void debug2() {
-      System.out.println(this.corners.get(LandCorner.topLeft));
-   }
+         corner = cornerOtherNeighbor;
 
-   public void debug3() {
-      System.out.println(this.corners.get(LandCorner.topRight));
+      this.corners.replace(side.getCornerCounterClockwise(), corner);
+      corner.adjacentLands.add(this);
    }
 
    public Optional<Land> getNeighbor(LandSide side) {
@@ -101,9 +97,23 @@ public abstract class Land {
       this.number = value;
    }
 
+   public int getNumber() {
+      return this.number;
+   }
+
    public void setBuilding(LandCorner corner, Building building) throws BUILD {
       this.trowIfIllegalBuild(this.corners.get(corner).building, building);
       this.corners.get(corner).building = Optional.of(building);
+   }
+
+   public Stream<Building> buildings() {
+      return this.corners.values().stream().map((border) -> {
+         return border.building;
+      }).filter((building) -> {
+         return building.isPresent();
+      }).map((building) -> {
+         return building.get();
+      });
    }
 
    public Optional<Building> getBuilding(LandCorner corner) {
@@ -137,10 +147,11 @@ public abstract class Land {
       return this.produce.isPresent();
    }
 
-   public List<Ressources> getRessource() throws LAND_DONT_PRODUCE {
-      if (this.produce.isEmpty())
-         throw new LAND_DONT_PRODUCE();
+   public List<Ressources> getRessource() {
       List<Ressources> res = new ArrayList<Ressources>();
+      if (this.produce.isEmpty() || GameVariables.map.thief.position == this)
+         return res;
+      
       IntStream.range(0, this.number).forEach((__) -> res.add(this.produce.get()));
       return res;
    }
@@ -152,12 +163,6 @@ public abstract class Land {
    }
 
    // class Exception
-   public static class LAND_DONT_PRODUCE extends Exception {
-      LAND_DONT_PRODUCE() {
-         super();
-      }
-   }
-
    public static class BUILD extends Exception {
       BUILD() {
          super();

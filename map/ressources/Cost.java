@@ -7,7 +7,7 @@ import util_my.RessourceCount;
  */
 
 public class Cost extends RessourceCount {
-   Cost(int brick, int grain, int lumber, int ore, int wool) {
+   public Cost(int brick, int grain, int lumber, int ore, int wool) {
       super(brick, grain, lumber, ore, wool);
    }
 

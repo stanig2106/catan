@@ -3,15 +3,17 @@ package player;
 import java.util.ArrayList;
 import java.util.List;
 
+import gameVariables.GameVariables;
 import map.Land.BUILD;
 import map.Land.BUILD.ROUTE_ON_ROUTE;
 import map.constructions.Building;
 import map.constructions.Route;
 import map.ressources.Cost;
 import player.Inventory.NOT_ENOUGH_RESSOURCES;
-import player.moves.Build;
-import player.moves.LunchDices;
-import player.moves.Move;
+import player.plays.Build;
+import player.plays.LunchDices;
+import player.plays.PlaceThief;
+import player.plays.Play;
 
 public abstract class Player {
    public Inventory ressources;
@@ -27,22 +29,51 @@ public abstract class Player {
       this.ressources.pay(cost);
    }
 
-   void play(Move move) throws ROUTE_ON_ROUTE, BUILD, NOT_ENOUGH_RESSOURCES {
-      if (move instanceof Build) {
-         ((Build<?>) move).pay();
-         ((Build<?>) move).setConstruction();
-      } else if (move instanceof LunchDices) {
-         ((LunchDices) move).dicesResult();
-      }
-   }
+   abstract public LunchDices askLunchDices();
+
+   abstract public Build<?> askBuild();
+
+   abstract public PlaceThief askPlaceThief();
 
 
    public static class RealPlayer extends Player {
-      void askMoveOnConsole() {
+      Play askPlayOnConsole() {
+         throw new Error("NI");
+      }
+
+      @Override
+      public LunchDices askLunchDices() {
+         throw new Error("NI");
+      }
+
+      @Override
+      public Build<?> askBuild() {
+         throw new Error("NI");
+      }
+
+      @Override
+      public PlaceThief askPlaceThief() {
+         throw new Error("NI");
       }
    }
    
    public static class IA extends Player {
+
+      @Override
+      public LunchDices askLunchDices() {
+         throw new Error("NI");
+      }
+
+      @Override
+      public Build<?> askBuild() {
+         throw new Error("NI");
+      }
+
+      @Override
+      public PlaceThief askPlaceThief() {
+         throw new Error("NI");
+      }
+
    
    }
 }

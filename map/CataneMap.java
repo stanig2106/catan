@@ -5,23 +5,30 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import config.Config;
 import util_my.Box;
 import util_my.Coord;
 import util_my.HexagonalGrids;
-import util_my.directions.LandSide;
 
 public class CataneMap extends HexagonalGrids<Land> {
+   final Thief thief;
+
    public CataneMap() {
       super(Config.mapRadius);
+      initRandomLand();
+      this.thief = new Thief(
+         this.getAll().stream().filter((land) -> {
+         return (land instanceof Desert);
+            }).findFirst().orElse(this.get(new Coord(0, 0)))
+      );
    }
 
-   public void initRandomLand() {
+   private void initRandomLand() {
       Queue<Land> lands = CataneMap.getRandomLands(this.numberOfCase());
       this.forEachCoordinate((Coord c) -> this.set(c, lands.remove()));
       this.linkAllLand();
+
    }
 
    static private LinkedList<Land> getRandomLands(int numberOfLands) {

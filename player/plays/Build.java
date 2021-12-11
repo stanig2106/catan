@@ -1,4 +1,4 @@
-package player.moves;
+package player.plays;
 
 import java.util.function.Function;
 
@@ -14,7 +14,7 @@ import player.Player;
 import util_my.directions.LandCorner;
 import util_my.directions.LandSide;
 
-public abstract class Build<T extends Construction> extends Move {
+public abstract class Build<T extends Construction> extends Play {
    public Cost cost;
    Function<Player, T> T_new;
 
@@ -49,6 +49,12 @@ class BuildRoute extends Build<Route> {
    public void setConstruction() throws ROUTE_ON_ROUTE {
       this.position.setRoute(this.positionSide, this.getConstruction());
    }
+
+   @Override
+   public void execute() {
+      // TODO Auto-generated method stub
+      
+   }
 }
 
 class BuildColony extends Build<Colony> {
@@ -66,6 +72,12 @@ class BuildColony extends Build<Colony> {
       this.position.setBuilding(positionCorner, this.getConstruction());
       
    }
+
+   @Override
+   public void execute() {
+      // TODO Auto-generated method stub
+      
+   }
 }
 
 class BuildCity extends Build<City​​> {
@@ -81,5 +93,11 @@ class BuildCity extends Build<City​​> {
 
    public void setConstruction() throws BUILD {
       this.position.setBuilding(positionCorner, this.getConstruction());
+   }
+
+   @Override
+   public void execute() {
+      // TODO Auto-generated method stub
+      
    }
 }

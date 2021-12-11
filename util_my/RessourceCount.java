@@ -1,6 +1,7 @@
 package util_my;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.stream.Stream;
 
 import map.ressources.Ressources;
@@ -32,6 +33,11 @@ public abstract class RessourceCount extends HashMap<Ressources, Integer> {
       this.replace(ressource, this.get(ressource) - value);
    }
 
+   public void add(List<Ressources> ressources) {
+      ressources.forEach(ressource -> {
+         this.add(ressource);
+      });
+   }
    public void add(Ressources ressource) {
       this.add(ressource, 1);
    }
