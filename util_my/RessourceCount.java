@@ -10,7 +10,7 @@ public abstract class RessourceCount extends HashMap<Ressources, Integer> {
    public RessourceCount(int brick, int grain, int lumber, int ore, int wool) {
       this();
       this.replace(Ressources.Brick, brick);
-      this.replace(Ressources.Grain, grain);
+      this.replace(Ressources.Wheat, grain);
       this.replace(Ressources.Lumber, lumber);
       this.replace(Ressources.Ore, ore);
       this.replace(Ressources.Wool, wool);
@@ -38,9 +38,11 @@ public abstract class RessourceCount extends HashMap<Ressources, Integer> {
          this.add(ressource);
       });
    }
+
    public void add(Ressources ressource) {
       this.add(ressource, 1);
    }
+
    public void add(Ressources ressource, int value) {
       this.replace(ressource, this.get(ressource) + value);
    }

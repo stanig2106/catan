@@ -21,9 +21,11 @@ import map.constructions.City​​;
 import map.constructions.Colony;
 import map.constructions.Route;
 import map.ressources.Ressources;
-import player.plays.Build;
 import util_my.directions.LandCorner;
 import util_my.directions.LandSide;
+
+import java.awt.Image;
+import java.awt.Toolkit;
 
 public abstract class Land {
    protected int number;
@@ -31,20 +33,26 @@ public abstract class Land {
    private final Map<LandSide, Optional<Land>> neighbors = new HashMap<LandSide, Optional<Land>>() {
       {
          Stream.of(LandSide.values()).forEach((landSide) -> this.put(landSide, Optional.empty()));
-      
-   }};
+
+      }
+   };
    private final Map<LandSide, Border> borders = new HashMap<LandSide, Border>() {
       {
          Stream.of(LandSide.values()).forEach((landSide) -> this.put(landSide, null));
-      
-   }};
+
+      }
+   };
    private final Map<LandCorner, Corner> corners = new HashMap<LandCorner, Corner>() {
       {
          Stream.of(LandCorner.values()).forEach((landCorner) -> this.put(landCorner, null));
-   }};
+      }
+   };
 
-   Land(Optional<Ressources> produce) {
+   public final Image image;
+
+   Land(Optional<Ressources> produce, Image image) {
       this.produce = produce;
+      this.image = image;
    }
 
    public void setNeighbor(LandSide side, Land newNeighbor) {
@@ -66,21 +74,21 @@ public abstract class Land {
       if (cornerNewNeighbor == null && cornerOtherNeighbor == null)
          corner = new Corner();
       else if (cornerNewNeighbor != null)
-      corner = cornerNewNeighbor;
-      else 
-      corner = cornerOtherNeighbor;
+         corner = cornerNewNeighbor;
+      else
+         corner = cornerOtherNeighbor;
       this.corners.replace(side.getCornerClockwise(), corner);
       corner.adjacentLands.add(this);
-      
+
       cornerNewNeighbor = newNeighbor.corners.get(side.getOpposite().getCornerClockwise());
       cornerOtherNeighbor = this.neighbors.get(side.getSideCounterClockwise()).map((otherNeighbor) -> {
          return otherNeighbor.corners.get(side.getSideCounterClockwise().getOpposite().getCornerCounterClockwise());
       }).orElse(null);
-      if (cornerNewNeighbor == null && cornerOtherNeighbor == null) 
+      if (cornerNewNeighbor == null && cornerOtherNeighbor == null)
          corner = new Corner();
       else if (cornerNewNeighbor != null)
          corner = cornerNewNeighbor;
-      else 
+      else
          corner = cornerOtherNeighbor;
 
       this.corners.replace(side.getCornerCounterClockwise(), corner);
@@ -127,9 +135,9 @@ public abstract class Land {
          return;
       }
       if (newBuilding instanceof City​​)
-         throw new BUILD.BUILDING_ON_CITY();    
+         throw new BUILD.BUILDING_ON_CITY();
       if (oldBuilding.get() instanceof Colony && newBuilding instanceof Colony)
-            throw new BUILD.COLONY_ON_COLONY();
+         throw new BUILD.COLONY_ON_COLONY();
    }
 
    public void setRoute(LandSide side, Route route) throws ROUTE_ON_ROUTE {
@@ -142,7 +150,6 @@ public abstract class Land {
       return this.borders.get(side).route;
    }
 
-
    public boolean isProducerLand() {
       return this.produce.isPresent();
    }
@@ -151,11 +158,10 @@ public abstract class Land {
       List<Ressources> res = new ArrayList<Ressources>();
       if (this.produce.isEmpty() || GameVariables.map.thief.position == this)
          return res;
-      
+
       IntStream.range(0, this.number).forEach((__) -> res.add(this.produce.get()));
       return res;
    }
-
 
    @Override
    public String toString() {
@@ -185,7 +191,7 @@ public abstract class Land {
             super();
          }
       }
-   
+
       public static class COLONY_ON_COLONY extends BUILD {
          COLONY_ON_COLONY() {
             super();
@@ -195,38 +201,50 @@ public abstract class Land {
 }
 
 class Hill extends Land {
+   static final Image image = Toolkit.getDefaultToolkit().getImage("assets/lands/Hill.png");
+
    Hill() {
-      super(Optional.of(Ressources.Brick));
+      super(Optional.of(Ressources.Brick), Hill.image);
    }
 }
 
 class Forest extends Land {
+   static final Image image = Toolkit.getDefaultToolkit().getImage("assets/lands/Forest.png");
+
    Forest() {
-      super(Optional.of(Ressources.Lumber));
+      super(Optional.of(Ressources.Lumber), Forest.image);
    }
 
 }
 
 class Mountain extends Land {
+   static final Image image = Toolkit.getDefaultToolkit().getImage("assets/lands/Mountain.png");
+
    Mountain() {
-      super(Optional.of(Ressources.Ore));
+      super(Optional.of(Ressources.Ore), Mountain.image);
    }
 }
 
 class Field extends Land {
+   static final Image image = Toolkit.getDefaultToolkit().getImage("assets/lands/Field.png");
+
    Field() {
-      super(Optional.of(Ressources.Grain));
+      super(Optional.of(Ressources.Wheat), Field.image);
    }
 }
 
 class Pasture extends Land {
+   static final Image image = Toolkit.getDefaultToolkit().getImage("assets/lands/Pasture.png");
+
    Pasture() {
-      super(Optional.of(Ressources.Wool));
+      super(Optional.of(Ressources.Wool), Pasture.image);
    }
 }
 
 class Desert extends Land {
+   static final Image image = Toolkit.getDefaultToolkit().getImage("assets/lands/Desert.png");
+
    Desert() {
-      super(Optional.empty());
+      super(Optional.empty(), Desert.image);
    }
 }
