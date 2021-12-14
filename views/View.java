@@ -1,50 +1,92 @@
 package views;
 
-import javax.swing.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Canvas;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 
-import Jama.Matrix;
-import gameVariables.GameVariables;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
+import javax.swing.JPanel;
 
-import java.awt.*;
+import util_my.Timeout;
 
 public class View extends JFrame {
-   private final Container content;
-
    public View() {
       super("Catane");
-      System.setProperty("sun.awt.noerasebackground", "true");
+      // System.setProperty("sun.awt.noerasebackground", "true");
       super.setSize(800, 600);
       super.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-      this.content = super.getContentPane();
       ViewContent canvas = new ViewContent();
-      super.add(canvas);
-      super.setVisible(true);
-   }
-}
+      ViewVariables.waitAllImageLoaded();
+      System.out.println("now");
 
-class ViewContent extends Canvas {
+      JPanel bgTest = new JPanel() {
+         @Override
+         public void paint(Graphics g) {
+            System.out.println("redraw back");
+            g.setColor(new Color(22, 145, 198));
+            g.fillRect(0, 0, super.getWidth(), super.getHeight());
+         }
+      };
+      Canvas fgTest = new Canvas() {
+         @Override
+         public void paint(Graphics g) {
+            System.out.println("redraw front green");
+            g.setColor(new Color(0, 255, 0));
+            g.fillRect(0, 0, super.getWidth(), super.getHeight());
+         }
+      };
 
-   public ViewContent() {
-      super();
-   }
+      // fgTest.setVisible(true);
+      bgTest.setVisible(true);
+      fgTest.setSize(new Dimension(25, 25));
+      canvas.setSize(new Dimension(50, 50));
+      JLayeredPane layeredPane = super.getLayeredPane();
 
-   @Override
-   public void paint(Graphics g) {
-      g.setColor(new Color(237, 211, 151));
-      g.fillRect(0, 0, getWidth(), getHeight());
+      // fgTest.setSize(new Dimension(25, 25));
+      // layeredPane.setDoubleBuffered(true);
+      // layeredPane.setOpaque(true);
+      layeredPane.add(fgTest, 3);
+      layeredPane.add(canvas, 2);
+      layeredPane.add(bgTest, 1);
+      new Timeout(() -> {
+         System.out.println("alors ?");
+         canvas.setVisible(false);
+      }, 10000);
 
-      int dim = (int) Math.min((super.getHeight() / 8.), super.getWidth() / (Math.sqrt(3) * 5.));
-      int height = 2 * dim;
-      int width = (int) (Math.sqrt(3) * dim);
-      GameVariables.map.forEachCoordinate(coord -> {
-         Matrix position = ViewVariables.basisMatrix.times(coord.toMatrix()).times(dim);
-         int x = (int) position.get(0, 0);
-         int y = (int) position.get(1, 0);
-         g.drawImage(GameVariables.map.get(coord).image, x + (int) (super.getWidth() / 2. - width / 2),
-               y + (int) (super.getHeight() / 2. - height / 2), width,
-               height,
-               this);
+      super.addComponentListener(new ComponentListener() {
+         @Override
+         public void componentHidden(ComponentEvent e) {
+            // TODO Auto-generated method stub
+
+         }
+
+         @Override
+         public void componentMoved(ComponentEvent e) {
+            // TODO Auto-generated method stub
+
+         }
+
+         @Override
+         public void componentResized(ComponentEvent e) {
+            bgTest.setSize(getSize());
+         }
+
+         @Override
+         public void componentShown(ComponentEvent e) {
+            // TODO Auto-generated method stub
+
+         }
       });
+
+      canvas.setSize(super.getSize());
+      layeredPane.setVisible(true);
+
+      super.setVisible(true);
    }
 
 }

@@ -23,26 +23,26 @@ import map.constructions.Route;
 import map.ressources.Ressources;
 import util_my.directions.LandCorner;
 import util_my.directions.LandSide;
+import views.ViewVariables;
 
 import java.awt.Image;
-import java.awt.Toolkit;
 
 public abstract class Land {
    protected int number;
    private final Optional<Ressources> produce;
-   private final Map<LandSide, Optional<Land>> neighbors = new HashMap<LandSide, Optional<Land>>() {
+   public final Map<LandSide, Optional<Land>> neighbors = new HashMap<LandSide, Optional<Land>>() {
       {
          Stream.of(LandSide.values()).forEach((landSide) -> this.put(landSide, Optional.empty()));
 
       }
    };
-   private final Map<LandSide, Border> borders = new HashMap<LandSide, Border>() {
+   public final Map<LandSide, Border> borders = new HashMap<LandSide, Border>() {
       {
          Stream.of(LandSide.values()).forEach((landSide) -> this.put(landSide, null));
 
       }
    };
-   private final Map<LandCorner, Corner> corners = new HashMap<LandCorner, Corner>() {
+   public final Map<LandCorner, Corner> corners = new HashMap<LandCorner, Corner>() {
       {
          Stream.of(LandCorner.values()).forEach((landCorner) -> this.put(landCorner, null));
       }
@@ -93,6 +93,17 @@ public abstract class Land {
 
       this.corners.replace(side.getCornerCounterClockwise(), corner);
       corner.adjacentLands.add(this);
+   }
+
+   public void addMissingBorderAndCorner() {
+      this.borders.entrySet().stream().forEach(entry -> {
+         if (this.borders.get(entry.getKey()) == null)
+            this.borders.replace(entry.getKey(), new Border());
+      });
+      this.corners.entrySet().stream().forEach(entry -> {
+         if (this.corners.get(entry.getKey()) == null)
+            this.corners.replace(entry.getKey(), new Corner());
+      });
    }
 
    public Optional<Land> getNeighbor(LandSide side) {
@@ -201,7 +212,7 @@ public abstract class Land {
 }
 
 class Hill extends Land {
-   static final Image image = Toolkit.getDefaultToolkit().getImage("assets/lands/Hill.png");
+   static final Image image = ViewVariables.importImage("assets/lands/Hill.png");
 
    Hill() {
       super(Optional.of(Ressources.Brick), Hill.image);
@@ -209,7 +220,7 @@ class Hill extends Land {
 }
 
 class Forest extends Land {
-   static final Image image = Toolkit.getDefaultToolkit().getImage("assets/lands/Forest.png");
+   static final Image image = ViewVariables.importImage("assets/lands/Forest.png");
 
    Forest() {
       super(Optional.of(Ressources.Lumber), Forest.image);
@@ -218,7 +229,7 @@ class Forest extends Land {
 }
 
 class Mountain extends Land {
-   static final Image image = Toolkit.getDefaultToolkit().getImage("assets/lands/Mountain.png");
+   static final Image image = ViewVariables.importImage("assets/lands/Mountain.png");
 
    Mountain() {
       super(Optional.of(Ressources.Ore), Mountain.image);
@@ -226,7 +237,7 @@ class Mountain extends Land {
 }
 
 class Field extends Land {
-   static final Image image = Toolkit.getDefaultToolkit().getImage("assets/lands/Field.png");
+   static final Image image = ViewVariables.importImage("assets/lands/Field.png");
 
    Field() {
       super(Optional.of(Ressources.Wheat), Field.image);
@@ -234,7 +245,7 @@ class Field extends Land {
 }
 
 class Pasture extends Land {
-   static final Image image = Toolkit.getDefaultToolkit().getImage("assets/lands/Pasture.png");
+   static final Image image = ViewVariables.importImage("assets/lands/Pasture.png");
 
    Pasture() {
       super(Optional.of(Ressources.Wool), Pasture.image);
@@ -242,7 +253,7 @@ class Pasture extends Land {
 }
 
 class Desert extends Land {
-   static final Image image = Toolkit.getDefaultToolkit().getImage("assets/lands/Desert.png");
+   static final Image image = ViewVariables.importImage("assets/lands/Desert.png");
 
    Desert() {
       super(Optional.empty(), Desert.image);

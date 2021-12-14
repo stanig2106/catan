@@ -1,13 +1,11 @@
-import Jama.Matrix;
 import gameVariables.GameVariables;
 import map.CataneMap;
-import map.Land;
-import map.Land.BUILD;
-import map.constructions.Colony;
+import map.Land.BUILD.ROUTE_ON_ROUTE;
+import map.constructions.Route;
+import player.Player;
 import util_my.Coord;
-import util_my.directions.LandCorner;
+import util_my.directions.LandSide;
 import views.View;
-import views.ViewVariables;
 
 /**
  * Catane
@@ -18,7 +16,16 @@ import views.ViewVariables;
  */
 public class Game {
    public static void main(String[] args) {
+
+      System.out.println("loading...");
       GameVariables.map = new CataneMap();
+      Player player = new Player.RealPlayer();
+      try {
+         GameVariables.map.get(new Coord(0, 0)).setRoute(LandSide.left, new Route(player));
+      } catch (ROUTE_ON_ROUTE e) {
+         e.printStackTrace();
+      }
+
       new View();
    }
 

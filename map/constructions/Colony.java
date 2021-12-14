@@ -1,6 +1,5 @@
 package map.constructions;
 
-import map.Corner;
 import map.ressources.Cost;
 import player.Player;
 

@@ -18,10 +18,9 @@ public class CataneMap extends HexagonalGrids<Land> {
       super(Config.mapRadius);
       initRandomLand();
       this.thief = new Thief(
-         this.getAll().stream().filter((land) -> {
-         return (land instanceof Desert);
-            }).findFirst().orElse(this.get(new Coord(0, 0)))
-      );
+            this.getAll().stream().filter((land) -> {
+               return (land instanceof Desert);
+            }).findFirst().orElse(this.get(new Coord(0, 0))));
    }
 
    private void initRandomLand() {
@@ -63,6 +62,7 @@ public class CataneMap extends HexagonalGrids<Land> {
             this.get(c).setNeighbor(side, neighbor);
          });
       });
+      this.forEach(land -> land.addMissingBorderAndCorner());
    }
 
    @Override
