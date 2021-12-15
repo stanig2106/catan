@@ -23,7 +23,7 @@ import map.constructions.Route;
 import map.ressources.Ressources;
 import util_my.directions.LandCorner;
 import util_my.directions.LandSide;
-import views.ViewVariables;
+import view.ViewVariables;
 
 import java.awt.Image;
 

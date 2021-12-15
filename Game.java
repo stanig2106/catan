@@ -1,11 +1,14 @@
+import javax.swing.SwingConstants;
+
 import gameVariables.GameVariables;
 import map.CataneMap;
 import map.Land.BUILD.ROUTE_ON_ROUTE;
 import map.constructions.Route;
+import view.View;
+import view.ViewVariables;
 import player.Player;
 import util_my.Coord;
 import util_my.directions.LandSide;
-import views.View;
 
 /**
  * Catane
@@ -25,6 +28,8 @@ public class Game {
       } catch (ROUTE_ON_ROUTE e) {
          e.printStackTrace();
       }
+      ViewVariables.waitAllImageLoaded();
+      System.out.println("now !");
 
       new View();
    }

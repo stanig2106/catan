@@ -2,19 +2,15 @@ package util_my.directions;
 
 import java.util.stream.Stream;
 
-import javax.swing.JPanel;
-
 import Jama.Matrix;
 import map.constructions.Route;
-
 import util_my.Coord;
-import views.ViewContent;
-import views.ViewVariables;
+import view.ViewVariables;
 
-import java.awt.Canvas;
 import java.awt.Graphics;
 import java.awt.geom.AffineTransform;
 import java.awt.*;
+import java.awt.image.ImageObserver;
 
 public enum LandSide {
    topLeft, topRight, right, left, bottomLeft, bottomRight;
@@ -157,58 +153,4 @@ public enum LandSide {
       }
    }
 
-   public void drawRouteOn(Graphics g, Coord coord, int dim, ViewContent canvas, Route route) {
-      Matrix position = ViewVariables.basisMatrix.times(coord.toMatrix()).times(dim);
-      int x = (int) position.get(0, 0);
-      int y = (int) position.get(1, 0);
-      int routeHeight = dim;
-      int routeWidth = (int) (dim / 3.);
-
-      Image routeImg = route.owner.routeImage;
-      AffineTransform transform = new AffineTransform();
-
-      switch (this) {
-         case topLeft:
-            transform.translate(x + (int) (canvas.getWidth() / 2. - routeWidth / 2.) - (int) (dim * 0.20),
-                  y + (int) (canvas.getHeight() / 2. - routeHeight / 2.) - (int) (dim * 0.20));
-            transform.rotate(Math.toRadians(60));
-            break;
-         case topRight:
-            transform.translate(x + (int) (canvas.getWidth() / 2. - routeWidth / 2.) - (int) (dim * 0.30) + dim,
-                  y + (int) (canvas.getHeight() / 2. - routeHeight / 2.) - (int) (dim * 0.20));
-            transform.rotate(Math.toRadians(-60));
-            break;
-         case right:
-            g.drawImage(routeImg, x + (int) (canvas.getWidth() / 2. - routeWidth / 2.) + (int) (dim * 0.87),
-                  y + (int) (canvas.getHeight() / 2. - routeHeight / 2.),
-                  routeWidth,
-                  routeHeight, canvas);
-            return;
-         case left:
-            g.drawImage(routeImg, x + (int) (canvas.getWidth() / 2. - routeWidth / 2.) - (int) (dim * 0.87),
-                  y + (int) (canvas.getHeight() / 2. - routeHeight / 2.),
-                  routeWidth,
-                  routeHeight, canvas);
-
-            return;
-         case bottomLeft:
-            transform.translate(
-                  x + (int) (canvas.getWidth() / 2. - routeWidth / 2.) + (int) (dim * 0.70) - dim,
-                  y + (int) (canvas.getHeight() / 2. - routeHeight / 2.) + (int) (dim * 1.3));
-            transform.rotate(Math.toRadians(-60));
-            break;
-         case bottomRight:
-            transform.translate(x + (int) (canvas.getWidth() / 2. - routeWidth / 2.) + (int) (dim * 0.70),
-                  y + (int) (canvas.getHeight() / 2. - routeHeight / 2.) + (int) (dim * 1.3));
-            transform.rotate(Math.toRadians(60));
-            break;
-         default:
-            throw new Error("Unknown side");
-      }
-
-      transform.scale((double) routeWidth / routeImg.getWidth(null),
-            (double) routeHeight / routeImg.getHeight(null));
-      transform.translate(-routeImg.getWidth(canvas) / 2, -routeImg.getHeight(canvas) / 2);
-      ((Graphics2D) g).drawImage(routeImg, transform, canvas);
-   }
 }

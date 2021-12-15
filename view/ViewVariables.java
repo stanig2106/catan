@@ -1,4 +1,4 @@
-package views;
+package view;
 
 import java.awt.Image;
 import java.awt.Toolkit;
@@ -11,6 +11,7 @@ import Jama.Matrix;
 public class ViewVariables {
    public final static Matrix basisMatrix = new Matrix(
          new double[][] { { Math.sqrt(3), Math.sqrt(3) / 2. }, { 0, 3. / 2. } });
+
    public static final Image backgroundImage = importImage("assets/Background.png");
 
    private static List<Image> importedImages;

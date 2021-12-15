@@ -15,10 +15,10 @@ public class LunchDices extends Play {
    public void execute() {
       if (dicesResult == 7)
          is7execute();
-      else 
+      else
          not7Execute();
    }
-   
+
    private void not7Execute() {
       GameVariables.map.forEach((land) -> {
          if (land.getNumber() != dicesResult)
@@ -33,7 +33,7 @@ public class LunchDices extends Play {
       });
    }
 
-   private void is7execute(){
+   private void is7execute() {
       this.player.askPlaceThief().execute();
    }
 }

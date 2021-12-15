@@ -6,8 +6,9 @@ import player.Player;
 /**
  * PlaceThief
  */
-public class PlaceThief extends Play{
+public class PlaceThief extends Play {
    final Land landToPlace;
+
    PlaceThief(Player player, Land land) {
       super(player);
       this.landToPlace = land;

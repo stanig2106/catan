@@ -11,4 +11,3 @@ abstract public class Play {
 
    abstract public void execute();
 }
-

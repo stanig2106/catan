@@ -53,7 +53,7 @@ class BuildRoute extends Build<Route> {
    @Override
    public void execute() {
       // TODO Auto-generated method stub
-      
+
    }
 }
 
@@ -70,13 +70,13 @@ class BuildColony extends Build<Colony> {
 
    public void setConstruction() throws BUILD {
       this.position.setBuilding(positionCorner, this.getConstruction());
-      
+
    }
 
    @Override
    public void execute() {
       // TODO Auto-generated method stub
-      
+
    }
 }
 
@@ -98,6 +98,6 @@ class BuildCity extends Build<City​​> {
    @Override
    public void execute() {
       // TODO Auto-generated method stub
-      
+
    }
 }

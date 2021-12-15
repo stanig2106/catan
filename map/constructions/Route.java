@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 import map.ressources.Cost;
 import player.Player;
 import player.Player.Color;
-import views.ViewVariables;
+import view.ViewVariables;
 
 import java.awt.Image;
 
