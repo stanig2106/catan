@@ -2,15 +2,7 @@ package util_my.directions;
 
 import java.util.stream.Stream;
 
-import Jama.Matrix;
-import map.constructions.Route;
 import util_my.Coord;
-import view.ViewVariables;
-
-import java.awt.Graphics;
-import java.awt.geom.AffineTransform;
-import java.awt.*;
-import java.awt.image.ImageObserver;
 
 public enum LandSide {
    topLeft, topRight, right, left, bottomLeft, bottomRight;
@@ -57,23 +49,8 @@ public enum LandSide {
       }
    }
 
-   public LandSide[] getAdjacent() {
-      switch (this) {
-         case topLeft:
-            return new LandSide[] { topRight, left };
-         case topRight:
-            return new LandSide[] { topLeft, right };
-         case right:
-            return new LandSide[] { topRight, bottomRight };
-         case left:
-            return new LandSide[] { topLeft, bottomLeft };
-         case bottomLeft:
-            return new LandSide[] { bottomRight, left };
-         case bottomRight:
-            return new LandSide[] { bottomLeft, right };
-         default:
-            throw new Error("Unknown side");
-      }
+   public LandSide[] getAdjacentsSides() {
+      return new LandSide[] { this.getSideClockwise(), this.getSideCounterClockwise() };
    }
 
    public LandSide getSideClockwise() {
@@ -151,6 +128,10 @@ public enum LandSide {
          default:
             throw new Error("Unknown side");
       }
+   }
+
+   public LandCorner[] getAdjacentsCorners() {
+      return new LandCorner[] { this.getCornerClockwise(), this.getCornerCounterClockwise() };
    }
 
 }

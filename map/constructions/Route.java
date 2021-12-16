@@ -13,11 +13,6 @@ import view.ViewVariables;
 import java.awt.Image;
 
 public class Route extends Construction {
-   public Optional<Building> adjacentsBuildingClockwise;
-   public Optional<Building> adjacentsBuildingCounterClockwise;
-   public Optional<Route> adjacentsRouteClockwise;
-   public Optional<Route> adjacentsRouteCounterClockwise;
-
    public static final Map<Color, Image> images = new HashMap<Color, Image>() {
       {
          Stream.of(Color.values()).forEach(color -> {
@@ -30,6 +25,6 @@ public class Route extends Construction {
    public final static Cost cost = new Cost(1, 0, 1, 0, 0);
 
    public Route(Player owner) {
-      super(owner);
+      super(owner, Route.images.get(owner.color));
    }
 }

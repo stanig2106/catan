@@ -14,11 +14,11 @@ import gameVariables.GameVariables;
 import map.Border;
 import map.Corner;
 import map.Land;
+import map.constructions.Building;
 import map.constructions.Route;
 import util_my.Coord;
 import util_my.directions.LandCorner;
 import util_my.directions.LandSide;
-import view.Painting;
 import view.ViewVariables;
 import view.Painting.PaintingJob;
 
@@ -108,7 +108,7 @@ class RouteJob extends PaintingJob {
       int routeHeight = size;
       int routeWidth = (int) (size / 3.);
 
-      Image routeImg = route.owner.routeImage;
+      Image routeImg = route.image;
       AffineTransform transform = new AffineTransform();
 
       switch (side) {
@@ -173,21 +173,21 @@ class BuildingJob extends PaintingJob {
          Land land = GameVariables.map.get(coord);
          LandCorner.stream().forEach(landCorner -> {
             Corner corner = land.corners.get(landCorner);
-            // corner.building.ifPresent(building -> {
-            if (drawnCorners.indexOf(corner) == -1) {
-               this.drawBuildingOn(g, coord, landCorner, dim, /* building , */ imageObserver);
-               drawnCorners.add(corner);
-            }
-            // });
+            corner.building.ifPresent(building -> {
+               if (drawnCorners.indexOf(corner) == -1) {
+                  this.drawBuildingOn(g, coord, landCorner, dim, building, imageObserver);
+                  drawnCorners.add(corner);
+               }
+            });
 
          });
       });
 
    }
 
-   private void drawBuildingOn(Graphics2D g, Coord coord, LandCorner corner, Dimension dim,
+   private void drawBuildingOn(Graphics2D g, Coord coord, LandCorner corner, Dimension dim, Building building,
          ImageObserver imageObserver) {
-      Image image = ViewVariables.importImage("assets/colonies/ColonyBlue.png");
+      Image image = building.image;
       while (image.getWidth(null) == -1) {
       }
       Matrix position = ViewVariables.basisMatrix.times(coord.toMatrix()).times(size);

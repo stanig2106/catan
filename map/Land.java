@@ -15,12 +15,14 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import gameVariables.GameVariables;
+import map.Land.BUILD.ORPHELIN_ROUTE;
 import map.Land.BUILD.ROUTE_ON_ROUTE;
 import map.constructions.Building;
 import map.constructions.City​​;
 import map.constructions.Colony;
 import map.constructions.Route;
 import map.ressources.Ressources;
+import util_my.Coord;
 import util_my.directions.LandCorner;
 import util_my.directions.LandSide;
 import view.ViewVariables;
@@ -49,6 +51,7 @@ public abstract class Land {
    };
 
    public final Image image;
+   public Coord coord;
 
    Land(Optional<Ressources> produce, Image image) {
       this.produce = produce;
@@ -106,6 +109,32 @@ public abstract class Land {
       });
    }
 
+   public void linkAllBorderAndCorner() {
+      this.borders.entrySet().forEach(entry -> {
+         // link border - border
+         Stream.of(entry.getKey().getAdjacentsSides()).map(adjacentsLandSide -> this.borders.get(adjacentsLandSide))
+               .forEach(adjacentBorder -> entry.getValue().adjacentBorders.add(adjacentBorder));
+         // border - corner and corner - border
+         Stream.of(entry.getKey().getAdjacentsCorners())
+               .map(adjacentLandCorner -> this.corners.get(adjacentLandCorner))
+               .forEach(adjacentCorner -> {
+                  if (!entry.getValue().adjacentCorners.contains(adjacentCorner))
+                     entry.getValue().adjacentCorners.add(adjacentCorner);
+                  if (!adjacentCorner.adjacentBorders.contains(entry.getValue()))
+                     adjacentCorner.adjacentBorders.add(entry.getValue());
+               });
+      });
+      // link corner - corner
+      this.corners.entrySet().forEach(entry -> {
+         Stream.of(entry.getKey().getAdjacentsCorners()).map(adjacentLandCorner -> this.corners.get(adjacentLandCorner))
+               .forEach(adjacentCorner -> {
+                  if (!entry.getValue().adjacentCorners.contains(adjacentCorner))
+                     entry.getValue().adjacentCorners.add(adjacentCorner);
+               });
+      });
+
+   }
+
    public Optional<Land> getNeighbor(LandSide side) {
       return this.neighbors.get(side);
    }
@@ -120,8 +149,17 @@ public abstract class Land {
       return this.number;
    }
 
+   public boolean canSetBuilding(LandCorner corner, Building building) {
+      try {
+         this.trowIfIllegalBuild(this.corners.get(corner).building, building, this.corners.get(corner));
+      } catch (BUILD e) {
+         return false;
+      }
+      return true;
+   }
+
    public void setBuilding(LandCorner corner, Building building) throws BUILD {
-      this.trowIfIllegalBuild(this.corners.get(corner).building, building);
+      this.trowIfIllegalBuild(this.corners.get(corner).building, building, this.corners.get(corner));
       this.corners.get(corner).building = Optional.of(building);
    }
 
@@ -139,19 +177,36 @@ public abstract class Land {
       return this.corners.get(corner).building;
    }
 
-   private void trowIfIllegalBuild(Optional<Building> oldBuilding, Building newBuilding) throws BUILD {
+   private void trowIfIllegalBuild(Optional<Building> oldBuilding, Building newBuilding, Corner cornerPosition)
+         throws BUILD {
+      if (cornerPosition.adjacentCorners.stream().anyMatch(adjacentCorner -> adjacentCorner.building.isPresent()))
+         throw new BUILD.BUILDING_NEAR_BUILDING();
       if (oldBuilding.isEmpty()) {
          if (newBuilding instanceof City​​)
             throw new BUILD.CITY_WITHOUT_COLONY();
          return;
       }
+      if (oldBuilding.get().owner != newBuilding.owner)
+         throw new BUILD.BUILDING_ON_OPPONENT_BUILDING();
       if (newBuilding instanceof City​​)
          throw new BUILD.BUILDING_ON_CITY();
       if (oldBuilding.get() instanceof Colony && newBuilding instanceof Colony)
          throw new BUILD.COLONY_ON_COLONY();
    }
 
-   public void setRoute(LandSide side, Route route) throws ROUTE_ON_ROUTE {
+   public boolean canSetRoute(LandSide side, Route route) {
+      if (this.borders.get(side).adjacentBorders.stream().noneMatch(adjacentBorder -> adjacentBorder.route.isPresent())
+            && this.borders.get(side).adjacentCorners.stream()
+                  .noneMatch(adjacentCorner -> adjacentCorner.building.isPresent()))
+         return false;
+      return !this.borders.get(side).route.isPresent();
+   }
+
+   public void setRoute(LandSide side, Route route) throws BUILD {
+      if (this.borders.get(side).adjacentBorders.stream().noneMatch(adjacentBorder -> adjacentBorder.route.isPresent())
+            && this.borders.get(side).adjacentCorners.stream()
+                  .noneMatch(adjacentCorner -> adjacentCorner.building.isPresent()))
+         throw new BUILD.ORPHELIN_ROUTE();
       if (this.borders.get(side).route.isPresent())
          throw new BUILD.ROUTE_ON_ROUTE();
       this.borders.get(side).route = Optional.of(route);
@@ -180,33 +235,34 @@ public abstract class Land {
    }
 
    // class Exception
-   public static class BUILD extends Exception {
-      BUILD() {
-         super();
+   public abstract static class BUILD extends Exception {
+
+      public static class BUILDING_NEAR_BUILDING extends BUILD {
+
+      }
+
+      public static class BUILDING_ON_OPPONENT_BUILDING extends BUILD {
+
       }
 
       public static class CITY_WITHOUT_COLONY extends BUILD {
-         CITY_WITHOUT_COLONY() {
-            super();
-         }
+
+      }
+
+      public static class ORPHELIN_ROUTE extends BUILD {
+
       }
 
       public static class ROUTE_ON_ROUTE extends BUILD {
-         ROUTE_ON_ROUTE() {
-            super();
-         }
+
       }
 
       public static class BUILDING_ON_CITY extends BUILD {
-         BUILDING_ON_CITY() {
-            super();
-         }
+
       }
 
       public static class COLONY_ON_COLONY extends BUILD {
-         COLONY_ON_COLONY() {
-            super();
-         }
+
       }
    }
 }

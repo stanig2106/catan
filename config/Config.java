@@ -1,5 +1,6 @@
 package config;
 
 public abstract class Config {
-   public static int mapRadius = 2;
+   // horizontal diameter = 2 * mapRadius + 1
+   public static final int mapRadius = 2;
 }

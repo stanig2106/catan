@@ -25,13 +25,18 @@ public class CataneMap extends HexagonalGrids<Land> {
 
    private void initRandomLand() {
       Queue<Land> lands = CataneMap.getRandomLands(this.numberOfCase());
-      this.forEachCoordinate((Coord c) -> this.set(c, lands.remove()));
+      this.forEachCoordinate((Coord c) -> {
+         Land land = lands.remove();
+         land.coord = c;
+         this.set(c, land);
+      });
       this.linkAllLand();
-
    }
 
    static private LinkedList<Land> getRandomLands(int numberOfLands) {
       // this : number = 19
+      if (numberOfLands != 19)
+         throw new Error("NI");
       LinkedList<Land> res = new LinkedList<Land>();
 
       res.add(new Desert());
@@ -63,6 +68,7 @@ public class CataneMap extends HexagonalGrids<Land> {
          });
       });
       this.forEach(land -> land.addMissingBorderAndCorner());
+      this.forEach(land -> land.linkAllBorderAndCorner());
    }
 
    @Override

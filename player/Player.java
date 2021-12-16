@@ -24,13 +24,12 @@ public abstract class Player {
    final List<Route> routes = new ArrayList<Route>();
 
    static int playersCount = 0;
-   public final Image routeImage;
+
    public final Color color;
    public final int playerNumber = Player.playersCount++;
 
    Player() {
       this.color = Color.values()[playerNumber];
-      this.routeImage = Route.images.get(this.color);
    }
 
    public boolean haveEnough(Cost cost) {

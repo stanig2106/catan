@@ -8,4 +8,47 @@ public enum LandCorner {
    public static Stream<LandCorner> stream() {
       return Stream.of(LandCorner.values());
    }
+
+   public LandCorner getCornerClockwise() {
+      switch (this) {
+         case topLeft:
+            return top;
+         case top:
+            return topRight;
+         case topRight:
+            return bottomRight;
+         case bottomRight:
+            return bottom;
+         case bottom:
+            return bottomRight;
+         case bottomLeft:
+            return topLeft;
+         default:
+            throw new Error("Unknown side");
+      }
+   }
+
+   public LandCorner getCornerCounterClockwise() {
+      switch (this) {
+         case topLeft:
+            return bottomLeft;
+         case top:
+            return topLeft;
+         case topRight:
+            return top;
+         case bottomRight:
+            return topRight;
+         case bottom:
+            return bottomRight;
+         case bottomLeft:
+            return bottom;
+         default:
+            throw new Error("Unknown side");
+      }
+   }
+
+   public LandCorner[] getAdjacentsCorners() {
+      return new LandCorner[] { this.getCornerClockwise(), this.getCornerCounterClockwise() };
+   }
+
 }

@@ -46,7 +46,7 @@ class BuildRoute extends Build<Route> {
       this.positionSide = positionSide;
    }
 
-   public void setConstruction() throws ROUTE_ON_ROUTE {
+   public void setConstruction() throws BUILD {
       this.position.setRoute(this.positionSide, this.getConstruction());
    }
 
