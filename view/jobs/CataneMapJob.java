@@ -12,10 +12,13 @@ import java.util.List;
 import Jama.Matrix;
 import gameVariables.GameVariables;
 import map.Border;
+import map.Corner;
 import map.Land;
 import map.constructions.Route;
 import util_my.Coord;
+import util_my.directions.LandCorner;
 import util_my.directions.LandSide;
+import view.Painting;
 import view.ViewVariables;
 import view.Painting.PaintingJob;
 
@@ -31,7 +34,7 @@ public class CataneMapJob extends PaintingJob {
       this.backgroundJob.paint(g, dim, imageObserver);
       new LandJob(size).paint(g, dim, imageObserver);
       new RouteJob(size).paint(g, dim, imageObserver);
-
+      new BuildingJob(size).paint(g, dim, imageObserver);
    }
 
 }
@@ -88,7 +91,7 @@ class RouteJob extends PaintingJob {
             Border border = land.borders.get(landSide);
             border.route.ifPresent(route -> {
                if (drawnBorders.indexOf(border) == -1) {
-                  this.drawRouteOn(g, coord, landSide, size, dim, route, imageObserver);
+                  this.drawRouteOn(g, coord, landSide, dim, route, imageObserver);
                   drawnBorders.add(border);
                }
             });
@@ -97,7 +100,7 @@ class RouteJob extends PaintingJob {
       });
    }
 
-   public void drawRouteOn(Graphics2D g, Coord coord, LandSide side, int size, Dimension dim, Route route,
+   public void drawRouteOn(Graphics2D g, Coord coord, LandSide side, Dimension dim, Route route,
          ImageObserver imageObserver) {
       Matrix position = ViewVariables.basisMatrix.times(coord.toMatrix()).times(size);
       int x = (int) position.get(0, 0);
@@ -152,6 +155,87 @@ class RouteJob extends PaintingJob {
       transform.translate(-routeImg.getWidth((ImageObserver) routeImg) / 2,
             -routeImg.getHeight((ImageObserver) routeImg) / 2);
       ((Graphics2D) g).drawImage(routeImg, transform, imageObserver);
+   }
+
+}
+
+class BuildingJob extends PaintingJob {
+   final int size;
+
+   BuildingJob(int size) {
+      this.size = size;
+   }
+
+   @Override
+   public void paint(Graphics2D g, Dimension dim, ImageObserver imageObserver) {
+      List<Corner> drawnCorners = new ArrayList<Corner>();
+      GameVariables.map.forEachCoordinate(coord -> {
+         Land land = GameVariables.map.get(coord);
+         LandCorner.stream().forEach(landCorner -> {
+            Corner corner = land.corners.get(landCorner);
+            // corner.building.ifPresent(building -> {
+            if (drawnCorners.indexOf(corner) == -1) {
+               this.drawBuildingOn(g, coord, landCorner, dim, /* building , */ imageObserver);
+               drawnCorners.add(corner);
+            }
+            // });
+
+         });
+      });
+
+   }
+
+   private void drawBuildingOn(Graphics2D g, Coord coord, LandCorner corner, Dimension dim,
+         ImageObserver imageObserver) {
+      Image image = ViewVariables.importImage("assets/colonies/ColonyBlue.png");
+      while (image.getWidth(null) == -1) {
+      }
+      Matrix position = ViewVariables.basisMatrix.times(coord.toMatrix()).times(size);
+      int x = (int) position.get(0, 0);
+      int y = (int) position.get(1, 0);
+      int height = (int) (size / 1.7);
+      int width = (int) (size / 1.7);
+      switch (corner) {
+         case top:
+            g.drawImage(image, x + (int) (dim.getWidth() / 2. - width / 2.),
+                  y + (int) (dim.getHeight() / 2. - height / 2. - size),
+                  width,
+                  height, imageObserver);
+            break;
+         case bottom:
+            g.drawImage(image, x + (int) (dim.getWidth() / 2. - width / 2.),
+                  y + (int) (dim.getHeight() / 2. - height / 2. + size),
+                  width,
+                  height, imageObserver);
+            break;
+         case topLeft:
+            g.drawImage(image, x + (int) (dim.getWidth() / 2. - width / 2.) - (int) (size * 0.87),
+                  y + (int) (dim.getHeight() / 2. - height / 2. - size / 2.3),
+                  width,
+                  height, imageObserver);
+            break;
+         case topRight:
+            g.drawImage(image, x + (int) (dim.getWidth() / 2. - width / 2.) - (int) (size * 1.1) + size * 2,
+                  y + (int) (dim.getHeight() / 2. - height / 2. - size / 2.3),
+                  width,
+                  height, imageObserver);
+            break;
+         case bottomLeft:
+            g.drawImage(image, x + (int) (dim.getWidth() / 2. - width / 2.) - (int) (size * 0.87),
+                  y + (int) (dim.getHeight() / 2. - height / 2. + size / 2.3),
+                  width,
+                  height, imageObserver);
+            break;
+         case bottomRight:
+            g.drawImage(image, x + (int) (dim.getWidth() / 2. - width / 2.) - (int) (size * 1.1) + size * 2,
+                  y + (int) (dim.getHeight() / 2. - height / 2. + size / 2.3),
+                  width,
+                  height, imageObserver);
+            break;
+
+         default:
+            throw new Error("Unknown corner");
+      }
    }
 
 }
