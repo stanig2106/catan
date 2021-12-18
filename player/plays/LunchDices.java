@@ -1,6 +1,6 @@
 package player.plays;
 
-import gameVariables.GameVariables;
+import globalVariables.GameVariables;
 import map.constructions.City​​;
 import player.Player;
 

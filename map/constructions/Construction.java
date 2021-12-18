@@ -1,13 +1,15 @@
 package map.constructions;
 
 import player.Player;
+import util_my.Promise;
+
 import java.awt.Image;
 
 public abstract class Construction {
    public final Player owner;
-   public final Image image;
+   public final Promise<Image> image;
 
-   Construction(Player owner, Image image) {
+   Construction(Player owner, Promise<Image> image) {
       this.owner = owner;
       this.image = image;
    }

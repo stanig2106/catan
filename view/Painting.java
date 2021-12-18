@@ -26,7 +26,7 @@ public class Painting {
 
    public static Promise<Painting> newPainting(int width, int height, PaintingJob job) {
       return new Promise<Painting>((resolve, reject) -> {
-         Painting res = new Painting();
+         final Painting res = new Painting();
          res.updatePainting(width, height, job).await();
          resolve.accept(res);
       });
@@ -41,9 +41,9 @@ public class Painting {
    }
 
    private Promise<Void> updatePainting(int width, int height, PaintingJob job, boolean force) {
-      int oldWidth = this.width;
-      int oldHeight = this.height;
-      PaintingJob oldJob = this.job;
+      final int oldWidth = this.width;
+      final int oldHeight = this.height;
+      final PaintingJob oldJob = this.job;
       this.width = width;
       this.height = height;
       this.job = job;
@@ -58,9 +58,10 @@ public class Painting {
             resolve.accept(null);
             return;
          }
+         resolve.accept(null);
 
-         BufferedImage image = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_ARGB);
-         Graphics2D g = (Graphics2D) image.getGraphics();
+         final BufferedImage image = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_ARGB);
+         final Graphics2D g = (Graphics2D) image.getGraphics();
 
          this.job.paint(g, new Dimension(image.getWidth(), image.getHeight()));
          this.image = image;

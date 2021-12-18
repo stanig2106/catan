@@ -1,4 +1,4 @@
-package gameVariables;
+package globalVariables;
 
 import map.CataneMap;
 

@@ -14,19 +14,19 @@ public class View extends JFrame {
    // DONT USE THE getGraphics method !!
 
    final Painting foregroundPainting;
-   final Painting backgroundPainting;
+   public final Painting backgroundPainting;
    final Canvas foreground;
-   final JPanel background;
+   public final JPanel background;
 
    public View() {
       super("Catane");
       System.setProperty("sun.awt.noerasebackground", "true");
-      super.setSize(1200, 1600);
-      super.setPreferredSize(new Dimension(1200, 1600));
+      super.setSize(1200, 800);
+      super.setPreferredSize(new Dimension(1200, 800));
       super.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-      this.foregroundPainting = Painting.newPainting(this.getSize(), new TestJob()).await();
       this.backgroundPainting = Painting.newPainting(this.getSize(), new CataneMapJob()).await();
+      this.foregroundPainting = Painting.newPainting(this.getSize(), new TestJob()).await();
 
       View me = this;
       this.foreground = new Canvas() {
@@ -71,7 +71,7 @@ public class View extends JFrame {
       // }, 5000);
    }
 
-   void resizeCallback(ComponentEvent e) {
+   public void resizeCallback(ComponentEvent e) {
       this.background.setSize(super.getSize());
       this.backgroundPainting.updatePainting(super.getSize()).await();
       this.backgroundPainting.destroyBackup();

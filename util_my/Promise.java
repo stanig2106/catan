@@ -1,107 +1,173 @@
 package util_my;
 
-import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class Promise<T> {
-   private boolean done, rejected = false;
+public final class Promise<T> {
+   protected boolean done = false;
+   protected boolean rejected = false;
+   private Optional<ForkJoinTask<?>> taskStatus = Optional.empty();
+   protected final Optional<Timeout> taskTimeout;
+   private final static ForkJoinPool executor = ForkJoinPool.commonPool();
    Exception rejectedException;
    T resolvedValue;
-   private final Thread thread;
 
-   public Promise(BiConsumer<Consumer<T>, Consumer<Exception>> executor, Function<Throwable, T> onException) {
-      this.thread = new Thread(() -> executor.accept(this::resolve, this::reject));
-      Promise<T> me = this;
-      this.thread.setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-         @Override
-         public void uncaughtException(Thread thread, Throwable exception) {
-            me.resolve(onException.apply(exception));
-         }
-      });
-      this.thread.start();
+   public Promise(final BiConsumer<Consumer<T>, Consumer<Exception>> task,
+         final Function<Throwable, T> onException) {
+      this(task, onException, 0);
    }
 
-   public Promise(BiConsumer<Consumer<T>, Consumer<Exception>> executor) {
-      this.thread = new Thread(() -> executor.accept(this::resolve, this::reject));
-      Promise<T> me = this;
-      this.thread.setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-         @Override
-         public void uncaughtException(Thread thread, Throwable exception) {
-            me.reject(new PromiseRejectedException(exception));
+   public Promise(final BiConsumer<Consumer<T>, Consumer<Exception>> task, final Function<Throwable, T> onException,
+         long delay) {
+
+      Runnable submit = () -> this.taskStatus = Optional.of(executor.submit(() -> {
+         try {
+            task.accept(this::resolve, this::reject);
+         } catch (Throwable e) {
+            if (onException != null)
+               this.resolve(onException.apply(e));
+            else
+               this.reject(new RejectedExecutionException(e));
          }
-      });
-      this.thread.start();
+      }));
+
+      if (delay == 0) {
+         this.taskTimeout = Optional.empty();
+         submit.run();
+      } else
+         this.taskTimeout = Optional.of(new Timeout(() -> {
+            submit.run();
+         }, delay));
+
    }
 
-   public Promise(T value) {
-      this.thread = new Thread();
-      this.resolve(value);
+   public Promise(final BiConsumer<Consumer<T>, Consumer<Exception>> task) {
+      this(task, null, 0);
+   }
+
+   public Promise(final BiConsumer<Consumer<T>, Consumer<Exception>> task, final long delay) {
+      this(task, null, delay);
+   }
+
+   public Promise(final T value, final long delay) {
+      if (delay != 0)
+         this.taskTimeout = Optional.of(new Timeout(() -> {
+            this.resolve(value);
+         }, delay));
+      else {
+         this.taskTimeout = Optional.empty();
+         this.resolve(value);
+      }
+   }
+
+   public Promise(final T value) {
+      this(value, 0);
    }
 
    public Promise() {
-      this.thread = new Thread();
-      this.resolve(null);
+      this((T) null);
+   }
+
+   public Promise(final long delay) {
+      this((T) null, delay);
+   }
+
+   private Promise(final boolean rejected, final Exception reason, final long delay) {
+      if (!this.rejected)
+         throw new Error("this constructor only accept true, use Promise() instead");
+      if (delay != 0)
+         this.taskTimeout = Optional.of(new Timeout(() -> {
+            this.reject(new Exception("this is a RejectedPromise"));
+         }, delay));
+      else {
+         this.reject(new Exception("this is a RejectedPromise"));
+         this.taskTimeout = Optional.empty();
+      }
+   }
+
+   public static <T> Promise<T> rejectedPromise(final Exception reason, final long delay) {
+      return new Promise<T>(true, reason, delay);
    }
 
    public static <T> Promise<T> rejectedPromise() {
-      return new Promise<T>() {
-         {
-            reject(new Exception("this is a rejectedPromise"));
-         }
-      };
+      return rejectedPromise(new Exception("this is a RejectedPromise"), 0);
    }
 
-   public static <T> Promise<T> rejectedPromise(Exception reason) {
-      return new Promise<T>() {
-         {
-            reject(reason);
-         }
-      };
+   public static <T> Promise<T> rejectedPromise(final long delay) {
+      return rejectedPromise(new Exception("this is a RejectedPromise"), delay);
+   }
+
+   public static <T> Promise<T> rejectedPromise(final Exception reason) {
+      return rejectedPromise(reason, 0);
    }
 
    /**
     * @throws PromiseRejectedException as error
     */
-   public static void awaitAll(Promise<?>... promises) {
-      for (Promise<?> promise : promises) {
+   public static void awaitAll(final Promise<?>... promises) {
+      for (final Promise<?> promise : promises) {
          promise.await();
       }
    }
 
-   public static Promise<Void> combineAll(Promise<?>... promises) {
+   public static Promise<Void> combineAll(final Promise<?>... promises) {
       return new Promise<Void>((resolve, reject) -> {
-         for (Promise<?> promise : promises) {
+         for (final Promise<?> promise : promises) {
             try {
-               promise.awaitOrThrow();
-            } catch (PromiseRejectedException e) {
+               promise._await();
+            } catch (final PromiseRejectedException e) {
                reject.accept(e);
                return;
             }
          }
+         resolve.accept(null);
       });
    }
 
-   protected void resolve(T value) {
+   protected void resolve(final T value) {
       if (this.done)
          return;
-      this.thread.interrupt();
       this.done = true;
       this.resolvedValue = value;
    }
 
-   protected void reject(Exception reason) {
+   protected void reject(final Exception reason) {
       if (this.done)
          return;
-      this.thread.interrupt();
       this.done = true;
       this.rejected = true;
       this.rejectedException = reason;
    }
 
-   // public method
+   private T _await() throws PromiseRejectedException {
+      if (!this.done) { // run the promise or wait it done
+         this.taskTimeout.ifPresent(taskTimeout -> taskTimeout.joinImmediately());
+         this.taskStatus.ifPresent(taskStatus -> {
+            try {
+               taskStatus.get();
+            } catch (InterruptedException | ExecutionException e) {
+               e.printStackTrace();
+               throw new Error(e);
+            }
+         });
+      }
+      if (!this.done)
+         throw new Error("The promise never resolve or resolve asynchronously");
+      if (this.rejected)
+         if (this.rejectedException != null)
+            throw new PromiseRejectedException(this.rejectedException);
+         else
+            throw new PromiseRejectedException("the promise reject with a null Error");
+      return this.resolvedValue;
+   }
 
+   // public method
    public boolean resolved() {
       return this.done && !this.rejected;
    }
@@ -114,54 +180,65 @@ public class Promise<T> {
       return this.done;
    }
 
-   public Promise<Void> then(Consumer<T> onResolve) {
+   /**
+    * like await(), but don't get the result
+    * 
+    * @throws PromiseRejectedException as Error
+    */
+   public Promise<T> work() {
+      this.await();
+      return this;
+   }
+
+   public Promise<Void> then(final Consumer<T> onResolve) {
       return new Promise<Void>((resolve, reject) -> {
          try {
-            onResolve.accept(this.awaitOrThrow());
+            onResolve.accept(this._await());
             resolve.accept(null);
-         } catch (PromiseRejectedException e) {
+         } catch (final PromiseRejectedException e) {
             reject.accept(e);
          }
       });
    }
 
-   public Promise<Void> then(Consumer<T> onResolve, Consumer<PromiseRejectedException> catch_) {
+   public Promise<Void> then(final Consumer<T> onResolve, Consumer<PromiseRejectedException> catch_) {
       return new Promise<Void>((resolve, reject) -> {
          try {
-            onResolve.accept(this.awaitOrThrow());
+            onResolve.accept(this._await());
             resolve.accept(null);
-         } catch (PromiseRejectedException e) {
+         } catch (final PromiseRejectedException e) {
             catch_.accept(e);
             reject.accept(null);
          }
       });
    }
 
-   public <R> Promise<R> then(Function<T, R> onResolve) {
+   public <R> Promise<R> then(final Function<T, R> onResolve) {
       return new Promise<R>((Consumer<R> resolve, Consumer<Exception> reject) -> {
          try {
-            resolve.accept(onResolve.apply(this.awaitOrThrow()));
-         } catch (PromiseRejectedException e) {
+            resolve.accept(onResolve.apply(this._await()));
+         } catch (final PromiseRejectedException e) {
             reject.accept(e);
          }
       });
    }
 
-   public <R> Promise<R> then(Function<T, R> onResolve, Function<PromiseRejectedException, R> catch_) {
+   public <R> Promise<R> then(final Function<T, R> onResolve,
+         final Function<PromiseRejectedException, R> catch_) {
       return new Promise<R>((Consumer<R> resolve, Consumer<Exception> reject) -> {
          try {
-            resolve.accept(onResolve.apply(this.awaitOrThrow()));
-         } catch (PromiseRejectedException e) {
+            resolve.accept(onResolve.apply(this._await()));
+         } catch (final PromiseRejectedException e) {
             resolve.accept(catch_.apply(e));
          }
       });
    }
 
-   public Promise<T> catch_(Function<PromiseRejectedException, T> catch_) {
+   public Promise<T> catch_(final Function<PromiseRejectedException, T> catch_) {
       return new Promise<T>((resolve, reject) -> {
          try {
-            resolve.accept(this.awaitOrThrow());
-         } catch (PromiseRejectedException e) {
+            resolve.accept(this._await());
+         } catch (final PromiseRejectedException e) {
             resolve.accept(catch_.apply(e));
          }
       });
@@ -173,41 +250,41 @@ public class Promise<T> {
    public Promise<T> catchToError() {
       return new Promise<T>((resolve, reject) -> {
          try {
-            resolve.accept(this.awaitOrThrow());
-         } catch (PromiseRejectedException e) {
+            resolve.accept(this._await());
+         } catch (final PromiseRejectedException e) {
             e.printStackTrace();
             throw new Error(e);
          }
       });
    }
 
-   public void awaitThen(Consumer<T> onResolve, Consumer<PromiseRejectedException> catch_) {
+   public void awaitThen(final Consumer<T> onResolve, Consumer<PromiseRejectedException> catch_) {
       try {
-         onResolve.accept(this.awaitOrThrow());
-      } catch (PromiseRejectedException e) {
+         onResolve.accept(this._await());
+      } catch (final PromiseRejectedException e) {
          catch_.accept(e);
       }
    }
 
-   public <R> R awaitThen(Function<T, R> onResolve, Function<PromiseRejectedException, R> catch_) {
+   public <R> R awaitThen(final Function<T, R> onResolve, Function<PromiseRejectedException, R> catch_) {
       try {
-         return onResolve.apply(this.awaitOrThrow());
-      } catch (PromiseRejectedException e) {
+         return onResolve.apply(this._await());
+      } catch (final PromiseRejectedException e) {
          return catch_.apply(e);
       }
    }
 
-   public T awaitOr(T valueOnReject) {
+   public T awaitOr(final T valueOnReject) {
       try {
-         return this.awaitOrThrow();
-      } catch (PromiseRejectedException e) {
+         return this._await();
+      } catch (final PromiseRejectedException e) {
          return valueOnReject;
       }
    }
 
-   public T await(Function<PromiseRejectedException, T> catch_) {
+   public T await(final Function<PromiseRejectedException, T> catch_) {
       try {
-         return this.awaitOrThrow();
+         return this._await();
       } catch (PromiseRejectedException e) {
          return catch_.apply(e);
       }
@@ -218,48 +295,25 @@ public class Promise<T> {
     */
    public T await() {
       try {
-         return this.awaitOrThrow();
-      } catch (PromiseRejectedException e) {
-         System.out.println("Une erreur est survenue");
+         return this._await();
+      } catch (final PromiseRejectedException e) {
          e.printStackTrace();
          throw new Error(e);
       }
    }
 
    public T awaitOrThrow() throws PromiseRejectedException {
-      try {
-         this.thread.join();
-         if (!done) {
-            Error error = new Error("the promise never resolve");
-            error.printStackTrace();
-            throw error;
-         }
-      } catch (InterruptedException e) {
-         if (!done) {
-            e.printStackTrace();
-            throw new Error(e);
-         }
-      }
-      if (rejected)
-         if (this.rejectedException != null)
-            throw new PromiseRejectedException(this.rejectedException);
-         else
-            throw new PromiseRejectedException("the promise reject with a null Error");
-
-      return this.resolvedValue;
+      return this._await();
    }
 
    // class Exception
    public static class PromiseRejectedException extends Exception {
-      PromiseRejectedException(Exception exception) {
+      PromiseRejectedException(final String message) {
+         super(message);
       }
 
-      PromiseRejectedException(String message) {
-      }
-
-      PromiseRejectedException(Throwable throwable) {
+      PromiseRejectedException(final Throwable throwable) {
          super(throwable);
-
       }
    }
 }

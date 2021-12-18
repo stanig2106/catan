@@ -5,13 +5,17 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.stream.IntStream;
-
+import java.awt.Image;
 import config.Config;
+import globalVariables.ViewVariables;
 import util_my.Box;
 import util_my.Coord;
 import util_my.HexagonalGrids;
+import util_my.Promise;
 
 public class CataneMap extends HexagonalGrids<Land> {
+   public final static Promise<Image> backgroundImage = ViewVariables.importImage("assets/Background.png");
+
    final Thief thief;
 
    public CataneMap() {

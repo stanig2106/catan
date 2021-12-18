@@ -10,8 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import Jama.Matrix;
-import gameVariables.GameVariables;
+import globalVariables.GameVariables;
 import map.Border;
+import map.CataneMap;
 import map.Corner;
 import map.Land;
 import map.constructions.Building;
@@ -19,7 +20,7 @@ import map.constructions.Route;
 import util_my.Coord;
 import util_my.directions.LandCorner;
 import util_my.directions.LandSide;
-import view.ViewVariables;
+import globalVariables.ViewVariables;
 import view.Painting.PaintingJob;
 
 public class CataneMapJob extends PaintingJob {
@@ -58,7 +59,8 @@ class LandJob extends PaintingJob {
             (int) (width * 5.5),
             height * 5);
 
-      g.drawImage(ViewVariables.backgroundImage, (int) (dim.getWidth() / 2) - (int) (11.56 * size / 2.0),
+      g.drawImage(CataneMap.backgroundImage.await(), (int) (dim.getWidth() / 2) -
+            (int) (11.56 * size / 2.0),
             (int) (dim.getHeight() / 2) - (int) (10.11 * size / 2.0),
             (int) (11.56 * size), (int) (10.11 * size), imageObserver);
 
@@ -66,7 +68,7 @@ class LandJob extends PaintingJob {
          Matrix position = ViewVariables.basisMatrix.times(coord.toMatrix()).times(size);
          int x = (int) position.get(0, 0);
          int y = (int) position.get(1, 0);
-         g.drawImage(GameVariables.map.get(coord).image, x + (int) (dim.getWidth() / 2. - width / 2.),
+         g.drawImage(GameVariables.map.get(coord).image.await(), x + (int) (dim.getWidth() / 2. - width / 2.),
                y + (int) (dim.getHeight() / 2. - height / 2.), width,
                height,
                imageObserver);
@@ -108,7 +110,7 @@ class RouteJob extends PaintingJob {
       int routeHeight = size;
       int routeWidth = (int) (size / 3.);
 
-      Image routeImg = route.image;
+      Image routeImg = route.image.await();
       AffineTransform transform = new AffineTransform();
 
       switch (side) {
@@ -187,9 +189,8 @@ class BuildingJob extends PaintingJob {
 
    private void drawBuildingOn(Graphics2D g, Coord coord, LandCorner corner, Dimension dim, Building building,
          ImageObserver imageObserver) {
-      Image image = building.image;
-      while (image.getWidth(null) == -1) {
-      }
+      Image image = building.image.await();
+
       Matrix position = ViewVariables.basisMatrix.times(coord.toMatrix()).times(size);
       int x = (int) position.get(0, 0);
       int y = (int) position.get(1, 0);
