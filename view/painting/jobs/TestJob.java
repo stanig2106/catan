@@ -1,11 +1,11 @@
-package view;
+package view.painting.jobs;
 
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.image.ImageObserver;
 
-import view.Painting.PaintingJob;
+import view.painting.Painting.PaintingJob;
 
 public class TestJob extends PaintingJob {
    public static int calledTime;

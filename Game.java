@@ -1,27 +1,15 @@
 import globalVariables.GameVariables;
-import globalVariables.ViewVariables;
 import map.CataneMap;
 import map.Land.BUILD;
 import map.constructions.City​​;
 import map.constructions.Colony;
 import map.constructions.Route;
-import view.View;
 import player.Player;
-import player.plays.Build;
 import util_my.Coord;
-import util_my.Promise;
 import util_my.Timeout;
 import util_my.directions.LandCorner;
 import util_my.directions.LandSide;
-import util_my.Promise;
-
-import java.awt.Image;
-import java.awt.Toolkit;
-
-import Jama.Matrix;
-
-import java.awt.MediaTracker;
-import java.awt.Component;
+import view.View;
 
 /**
  * Catane
@@ -58,7 +46,7 @@ public class Game {
          } catch (BUILD e) {
             e.printStackTrace();
          }
-         view.backgroundPainting.forceUpdatePainting().await();
+         view.backgroundPainting.data.forceUpdatePainting().await();
          view.background.repaint();
       }, 1000);
 

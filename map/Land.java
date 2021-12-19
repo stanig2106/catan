@@ -26,7 +26,7 @@ import util_my.directions.LandCorner;
 import util_my.directions.LandSide;
 import globalVariables.ViewVariables;
 
-import java.awt.Image;
+import java.awt.*;
 
 public abstract class Land {
    protected int number;

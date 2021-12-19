@@ -5,7 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.stream.IntStream;
-import java.awt.Image;
+import java.awt.*;
 import config.Config;
 import globalVariables.ViewVariables;
 import util_my.Box;

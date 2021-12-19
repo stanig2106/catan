@@ -1,6 +1,5 @@
 package util_my;
 
-import java.security.KeyStore.Entry;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -103,7 +102,7 @@ public class HexagonalGrids<T> {
       LandSide.stream().forEach((side) -> {
          try {
             T adjacent = this.get(side.offsetCoord(c));
-               callback.accept(adjacent, side);
+            callback.accept(adjacent, side);
          } catch (InvalidCoordinate invalidCoordinate) {
             return;
          }

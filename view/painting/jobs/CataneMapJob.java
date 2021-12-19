@@ -1,9 +1,10 @@
-package view.jobs;
+package view.painting.jobs;
 
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.geom.AffineTransform;
 import java.awt.image.ImageObserver;
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import java.util.List;
 
 import Jama.Matrix;
 import globalVariables.GameVariables;
+import globalVariables.ViewVariables;
 import map.Border;
 import map.CataneMap;
 import map.Corner;
@@ -20,31 +22,36 @@ import map.constructions.Route;
 import util_my.Coord;
 import util_my.directions.LandCorner;
 import util_my.directions.LandSide;
-import globalVariables.ViewVariables;
-import view.Painting.PaintingJob;
+import view.painting.Painting.PaintingJob;
 
 public class CataneMapJob extends PaintingJob {
-   public static int calledTime;
    public final BackgroundJob backgroundJob = new BackgroundJob();
+
+   private final int landSize;
+   private final Point mapCenter;
+
+   public CataneMapJob(int landSize, Point mapCenter) {
+      this.landSize = landSize;
+      this.mapCenter = mapCenter;
+   }
 
    @Override
    public void paint(Graphics2D g, Dimension dim, ImageObserver imageObserver) {
-      calledTime++;
-      System.out.println("CataneMapJob " + calledTime);
-      int size = (int) Math.min((dim.getHeight() / 10.), dim.getWidth() / (Math.sqrt(3) * 7.));
       this.backgroundJob.paint(g, dim, imageObserver);
-      new LandJob(size).paint(g, dim, imageObserver);
-      new RouteJob(size).paint(g, dim, imageObserver);
-      new BuildingJob(size).paint(g, dim, imageObserver);
+      new LandJob(this.landSize, this.mapCenter).paint(g, dim, imageObserver);
+      new RouteJob(this.landSize, this.mapCenter).paint(g, dim, imageObserver);
+      new BuildingJob(this.landSize, this.mapCenter).paint(g, dim, imageObserver);
    }
 
 }
 
 class LandJob extends PaintingJob {
    final int size;
+   private final Point mapCenter;
 
-   LandJob(int size) {
+   LandJob(int size, Point mapCenter) {
       this.size = size;
+      this.mapCenter = mapCenter;
    }
 
    @Override
@@ -54,22 +61,22 @@ class LandJob extends PaintingJob {
       int width = (int) (Math.sqrt(3) * size);
 
       g.setColor(new Color(237, 211, 151));
-      g.fillOval((int) (dim.getWidth() / 2.) - (int) (width * 2.75),
-            (int) (dim.getHeight() / 2.) - (int) (height * 2.5),
+      g.fillOval((int) (mapCenter.getX()) - (int) (width * 2.75),
+            (int) (mapCenter.getY()) - (int) (height * 2.5),
             (int) (width * 5.5),
             height * 5);
 
-      g.drawImage(CataneMap.backgroundImage.await(), (int) (dim.getWidth() / 2) -
-            (int) (11.56 * size / 2.0),
-            (int) (dim.getHeight() / 2) - (int) (10.11 * size / 2.0),
+      g.drawImage(CataneMap.backgroundImage.await(), (int) (mapCenter.getX() -
+            11.56 * size / 2.0),
+            (int) (mapCenter.getY() - 10.11 * size / 2.0),
             (int) (11.56 * size), (int) (10.11 * size), imageObserver);
 
       GameVariables.map.forEachCoordinate(coord -> {
-         Matrix position = ViewVariables.basisMatrix.times(coord.toMatrix()).times(size);
+         Matrix position = ViewVariables.hexToPixelMatrix.times(coord.toMatrix()).times(size);
          int x = (int) position.get(0, 0);
          int y = (int) position.get(1, 0);
-         g.drawImage(GameVariables.map.get(coord).image.await(), x + (int) (dim.getWidth() / 2. - width / 2.),
-               y + (int) (dim.getHeight() / 2. - height / 2.), width,
+         g.drawImage(GameVariables.map.get(coord).image.await(), x + (int) (mapCenter.getX() - width / 2.),
+               y + (int) (mapCenter.getY() - height / 2.), width,
                height,
                imageObserver);
       });
@@ -79,9 +86,11 @@ class LandJob extends PaintingJob {
 
 class RouteJob extends PaintingJob {
    final int size;
+   private final Point mapCenter;
 
-   RouteJob(int size) {
+   RouteJob(int size, Point mapCenter) {
       this.size = size;
+      this.mapCenter = mapCenter;
    }
 
    @Override
@@ -104,7 +113,7 @@ class RouteJob extends PaintingJob {
 
    public void drawRouteOn(Graphics2D g, Coord coord, LandSide side, Dimension dim, Route route,
          ImageObserver imageObserver) {
-      Matrix position = ViewVariables.basisMatrix.times(coord.toMatrix()).times(size);
+      Matrix position = ViewVariables.hexToPixelMatrix.times(coord.toMatrix()).times(size);
       int x = (int) position.get(0, 0);
       int y = (int) position.get(1, 0);
       int routeHeight = size;
@@ -115,37 +124,37 @@ class RouteJob extends PaintingJob {
 
       switch (side) {
          case topLeft:
-            transform.translate(x + (int) (dim.getWidth() / 2. - routeWidth / 2.) - (int) (size * 0.20),
-                  y + (int) (dim.getHeight() / 2. - routeHeight / 2.) - (int) (size * 0.20));
+            transform.translate(x + (int) (mapCenter.getX() - routeWidth / 2.) - (int) (size * 0.20),
+                  y + (int) (mapCenter.getY() - routeHeight / 2.) - (int) (size * 0.20));
             transform.rotate(Math.toRadians(60));
             break;
          case topRight:
-            transform.translate(x + (int) (dim.getWidth() / 2. - routeWidth / 2.) - (int) (size * 0.30) + size,
-                  y + (int) (dim.getHeight() / 2. - routeHeight / 2.) - (int) (size * 0.20));
+            transform.translate(x + (int) (mapCenter.getX() - routeWidth / 2.) - (int) (size * 0.30) + size,
+                  y + (int) (mapCenter.getY() - routeHeight / 2.) - (int) (size * 0.20));
             transform.rotate(Math.toRadians(-60));
             break;
          case right:
-            g.drawImage(routeImg, x + (int) (dim.getWidth() / 2. - routeWidth / 2.) + (int) (size * 0.87),
-                  y + (int) (dim.getHeight() / 2. - routeHeight / 2.),
+            g.drawImage(routeImg, x + (int) (mapCenter.getX() - routeWidth / 2.) + (int) (size * 0.87),
+                  y + (int) (mapCenter.getY() - routeHeight / 2.),
                   routeWidth,
                   routeHeight, imageObserver);
             return;
          case left:
-            g.drawImage(routeImg, x + (int) (dim.getWidth() / 2. - routeWidth / 2.) - (int) (size * 0.87),
-                  y + (int) (dim.getHeight() / 2. - routeHeight / 2.),
+            g.drawImage(routeImg, x + (int) (mapCenter.getX() - routeWidth / 2.) - (int) (size * 0.87),
+                  y + (int) (mapCenter.getY() - routeHeight / 2.),
                   routeWidth,
                   routeHeight, imageObserver);
 
             return;
          case bottomLeft:
             transform.translate(
-                  x + (int) (dim.getWidth() / 2. - routeWidth / 2.) + (int) (size * 0.70) - size,
-                  y + (int) (dim.getHeight() / 2. - routeHeight / 2.) + (int) (size * 1.3));
+                  x + (int) (mapCenter.getX() - routeWidth / 2.) + (int) (size * 0.70) - size,
+                  y + (int) (mapCenter.getY() - routeHeight / 2.) + (int) (size * 1.3));
             transform.rotate(Math.toRadians(-60));
             break;
          case bottomRight:
-            transform.translate(x + (int) (dim.getWidth() / 2. - routeWidth / 2.) + (int) (size * 0.70),
-                  y + (int) (dim.getHeight() / 2. - routeHeight / 2.) + (int) (size * 1.3));
+            transform.translate(x + (int) (mapCenter.getX() - routeWidth / 2.) + (int) (size * 0.70),
+                  y + (int) (mapCenter.getY() - routeHeight / 2.) + (int) (size * 1.3));
             transform.rotate(Math.toRadians(60));
             break;
          default:
@@ -163,9 +172,11 @@ class RouteJob extends PaintingJob {
 
 class BuildingJob extends PaintingJob {
    final int size;
+   private final Point mapCenter;
 
-   BuildingJob(int size) {
+   BuildingJob(int size, Point mapCenter) {
       this.size = size;
+      this.mapCenter = mapCenter;
    }
 
    @Override
@@ -191,45 +202,45 @@ class BuildingJob extends PaintingJob {
          ImageObserver imageObserver) {
       Image image = building.image.await();
 
-      Matrix position = ViewVariables.basisMatrix.times(coord.toMatrix()).times(size);
+      Matrix position = ViewVariables.hexToPixelMatrix.times(coord.toMatrix()).times(size);
       int x = (int) position.get(0, 0);
       int y = (int) position.get(1, 0);
       int height = (int) (size / 1.7);
       int width = (int) (size / 1.7);
       switch (corner) {
          case top:
-            g.drawImage(image, x + (int) (dim.getWidth() / 2. - width / 2.),
-                  y + (int) (dim.getHeight() / 2. - height / 2. - size),
+            g.drawImage(image, x + (int) (mapCenter.getX() - width / 2.),
+                  y + (int) (mapCenter.getY() - height / 2. - size),
                   width,
                   height, imageObserver);
             break;
          case bottom:
-            g.drawImage(image, x + (int) (dim.getWidth() / 2. - width / 2.),
-                  y + (int) (dim.getHeight() / 2. - height / 2. + size),
+            g.drawImage(image, x + (int) (mapCenter.getX() - width / 2.),
+                  y + (int) (mapCenter.getY() - height / 2. + size),
                   width,
                   height, imageObserver);
             break;
          case topLeft:
-            g.drawImage(image, x + (int) (dim.getWidth() / 2. - width / 2.) - (int) (size * 0.87),
-                  y + (int) (dim.getHeight() / 2. - height / 2. - size / 2.3),
+            g.drawImage(image, x + (int) (mapCenter.getX() - width / 2.) - (int) (size * 0.87),
+                  y + (int) (mapCenter.getY() - height / 2. - size / 2.3),
                   width,
                   height, imageObserver);
             break;
          case topRight:
-            g.drawImage(image, x + (int) (dim.getWidth() / 2. - width / 2.) - (int) (size * 1.1) + size * 2,
-                  y + (int) (dim.getHeight() / 2. - height / 2. - size / 2.3),
+            g.drawImage(image, x + (int) (mapCenter.getX() - width / 2.) - (int) (size * 1.1) + size * 2,
+                  y + (int) (mapCenter.getY() - height / 2. - size / 2.3),
                   width,
                   height, imageObserver);
             break;
          case bottomLeft:
-            g.drawImage(image, x + (int) (dim.getWidth() / 2. - width / 2.) - (int) (size * 0.87),
-                  y + (int) (dim.getHeight() / 2. - height / 2. + size / 2.3),
+            g.drawImage(image, x + (int) (mapCenter.getX() - width / 2.) - (int) (size * 0.87),
+                  y + (int) (mapCenter.getY() - height / 2. + size / 2.3),
                   width,
                   height, imageObserver);
             break;
          case bottomRight:
-            g.drawImage(image, x + (int) (dim.getWidth() / 2. - width / 2.) - (int) (size * 1.1) + size * 2,
-                  y + (int) (dim.getHeight() / 2. - height / 2. + size / 2.3),
+            g.drawImage(image, x + (int) (mapCenter.getX() - width / 2.) - (int) (size * 1.1) + size * 2,
+                  y + (int) (mapCenter.getY() - height / 2. + size / 2.3),
                   width,
                   height, imageObserver);
             break;

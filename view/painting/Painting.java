@@ -1,11 +1,13 @@
-package view;
+package view.painting;
 
-import java.util.*;
+import java.awt.Canvas;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
+import java.util.Optional;
 
 import javax.swing.JPanel;
-
-import java.awt.*;
-import java.awt.image.*;
 
 import util_my.Promise;
 

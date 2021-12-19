@@ -1,19 +1,19 @@
 package globalVariables;
 
-import util_my.Promise;
-
+import java.awt.Component;
 import java.awt.Image;
+import java.awt.MediaTracker;
 import java.awt.Toolkit;
 
 import Jama.Matrix;
-
-import java.awt.MediaTracker;
-import java.awt.Component;
+import util_my.Promise;
 
 public class ViewVariables extends Component {
    static final private ViewVariables instance = new ViewVariables();
-   public final static Matrix basisMatrix = new Matrix(
+   public final static Matrix hexToPixelMatrix = new Matrix(
          new double[][] { { Math.sqrt(3), Math.sqrt(3) / 2. }, { 0, 3. / 2. } });
+   public final static Matrix PixelToHexMatrix = new Matrix(
+         new double[][] { { Math.sqrt(3) / 3., -1. / 3. }, { 0, 2. / 3. } });
 
    public static Promise<Image> importImage(String path) {
       return instance._importImage(path);

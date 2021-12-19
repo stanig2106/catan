@@ -2,7 +2,6 @@ package map.constructions;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import map.ressources.Cost;
@@ -11,7 +10,7 @@ import player.Player.Color;
 import util_my.Promise;
 import globalVariables.ViewVariables;
 
-import java.awt.Image;
+import java.awt.*;
 
 public class Route extends Construction {
    public static final Map<Color, Promise<Image>> images = new HashMap<Color, Promise<Image>>() {

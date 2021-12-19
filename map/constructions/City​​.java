@@ -10,7 +10,7 @@ import player.Player.Color;
 import util_my.Promise;
 import globalVariables.ViewVariables;
 
-import java.awt.Image;
+import java.awt.*;
 
 public class City​​ extends Building {
    public static final Map<Color, Promise<Image>> images = new HashMap<Color, Promise<Image>>() {

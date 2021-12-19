@@ -1,22 +1,46 @@
 package view;
 
-import javax.swing.*;
-
-import util_my.Timeout;
-import view.jobs.CataneMapJob;
-
-import java.awt.*;
+import java.awt.Canvas;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
+import java.util.Optional;
+import java.util.function.Supplier;
+
+import javax.swing.JFrame;
+import javax.swing.JLayeredPane;
+import javax.swing.JPanel;
+import javax.swing.event.MouseInputListener;
+
+import globalVariables.GameVariables;
+import map.Land;
+import util_my.Box;
+import util_my.Promise;
+import util_my.Timeout;
+import view.input.MouseControl;
+import view.painting.Painting;
+import view.painting.jobs.CataneMapJob;
+import view.painting.jobs.LoadingJob;
+import view.painting.jobs.NullJob;
+import view.painting.jobs.TestJob;
 
 public class View extends JFrame {
    // this.background.getGraphics();
    // DONT USE THE getGraphics method !!
 
-   final Painting foregroundPainting;
-   public final Painting backgroundPainting;
+   public final Box<Painting> foregroundPainting = new Box<Painting>();
+   public final Box<Painting> backgroundPainting = new Box<Painting>();
    final Canvas foreground;
    public final JPanel background;
+   private final View me = this;
+
+   private final JLayeredPane content;
 
    public View() {
       super("Catane");
@@ -25,61 +49,137 @@ public class View extends JFrame {
       super.setPreferredSize(new Dimension(1200, 800));
       super.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-      this.backgroundPainting = Painting.newPainting(this.getSize(), new CataneMapJob()).await();
-      this.foregroundPainting = Painting.newPainting(this.getSize(), new TestJob()).await();
+      this.content = this.getLayeredPane();
+      this.content.setVisible(true);
+      super.setVisible(true);
 
-      View me = this;
+      Promise<Painting> cataneMapPainting = Painting.newPainting(this.content.getSize(),
+            new CataneMapJob(this.getLandSize(), this.getMapCenter()));
+      this.backgroundPainting.data = Painting.newPainting(this.content.getSize(), new LoadingJob()).await();
+      this.foregroundPainting.data = Painting.newPainting(this.content.getSize(), new NullJob()).await();
       this.foreground = new Canvas() {
          @Override
          public void paint(Graphics g) {
-            // System.out.println("try to paint front");
-            me.foregroundPainting.paintTo(this).await();
+            me.foregroundPainting.data.paintTo(this).await();
          }
       };
-      this.foreground.setSize(super.getWidth() / 2, super.getHeight());
-      this.background = new BackgroundPanel(this.backgroundPainting);
+      this.foreground.setSize(0, 0);
 
-      super.getLayeredPane().add(this.foreground, 2);
-      super.getLayeredPane().add(this.background, 1);
+      this.background = new BackgroundPanel(this.backgroundPainting);
+      this.background.setSize(this.content.getSize());
+
+      this.content.add(this.foreground, 2);
+      this.content.add(this.background, 1);
 
       super.pack();
       super.setLocationRelativeTo(null);
 
-      super.getLayeredPane().setVisible(true);
-      super.setVisible(true);
-
       super.addComponentListener(this.defaultComponentListener);
-      this.foreground.setVisible(false);
+      this.content.addMouseListener(this.defaultMouseInputListener);
+      this.content.addMouseMotionListener(this.defaultMouseInputListener);
+      this.content.addMouseWheelListener(this.defaultMouseWheelListener);
 
-      // new Timeout(() -> {
-      // System.out.println();
-      // System.out.println();
-      // System.out.println("test : ");
-      // System.out.println("------------------");
-      // System.out.println("------------------");
-      // System.out.println("move");
-      // this.foreground.setBounds(50, 50, 50, 50);
-      // this.background.repaint();
-      // new Timeout(() -> {
-      // System.out.println("move");
-      // this.foreground.setBounds(100, 100, 100, 100);
-      // new Timeout(() -> {
-      // System.out.println("hide");
-      // this.foreground.setVisible(false);
-      // }, 5000);
-      // }, 5000);
-      // }, 5000);
+      this.background.repaint();
+      this.backgroundPainting.data = cataneMapPainting.await();
+      this.foregroundPainting.data = Painting.newPainting(this.content.getSize(), new TestJob()).await();
+      this.background.repaint();
    }
 
-   public void resizeCallback(ComponentEvent e) {
-      this.background.setSize(super.getSize());
-      this.backgroundPainting.updatePainting(super.getSize()).await();
-      this.backgroundPainting.destroyBackup();
+   final private class LandSizeCalculator implements Supplier<Integer> {
+      public boolean needRecalculate = true;
+      int cachedValue;
+
+      @Override
+      public Integer get() {
+         if (this.needRecalculate) {
+            this.cachedValue = (int) Math.round(me.content.getHeight() / 10.
+                  * me.zoomLevel);
+            this.needRecalculate = false;
+         }
+         return this.cachedValue;
+      }
+   }
+
+   final LandSizeCalculator landSizeCalculator = new LandSizeCalculator();
+
+   public int getLandSize() {
+      return landSizeCalculator.get();
+   }
+
+   final private class MapCenterCalculator implements Supplier<Point> {
+      public boolean needRecalculate = true;
+      Point cachedValue;
+
+      @Override
+      public Point get() {
+         if (this.needRecalculate) {
+            this.cachedValue = new Point((int) (me.content.getWidth() / 2. + me.mapOffset.getX()),
+                  (int) (me.content.getHeight() / 2. + me.mapOffset.getY()));
+            this.needRecalculate = false;
+         }
+         return this.cachedValue;
+      }
+   }
+
+   final MapCenterCalculator mapCenterCalculator = new MapCenterCalculator();
+
+   public Point getMapCenter() {
+      return mapCenterCalculator.get();
+   }
+
+   //
+   // Callback
+   //
+
+   public void resizeCallback() {
+      landSizeCalculator.needRecalculate = true;
+      mapCenterCalculator.needRecalculate = true;
+      this.background.setSize(this.content.getSize());
+      this.backgroundPainting.data
+            .updatePainting(this.content.getSize(), new CataneMapJob(this.getLandSize(), this.getMapCenter())).await();
+      this.backgroundPainting.data.destroyBackup();
 
       // this.foreground.setSize(super.getWidth() / 2, super.getHeight());
       // this.foregroundPainting.updatePainting(super.getSize()).awaitOrError();
       // this.foregroundPainting.destroyBackup();
       // this.foregroundPainting.paintTo(this.foreground);
+   }
+
+   private double zoomLevel = 1;
+
+   public void zoomCallback(boolean zoomUp, Point origine) {
+      if ((zoomLevel == 0.75 && !zoomUp) || (zoomLevel == 3 && zoomUp))
+         return;
+
+      double old_xOffsetToCenter = (origine.getX() - getMapCenter().getX());
+      double old_yOffsetToCenter = (origine.getY() - getMapCenter().getY());
+      double oldZoomLevel = zoomLevel;
+
+      zoomLevel += zoomUp ? 0.25 : -0.25;
+      zoomLevel = Math.max(0.75, zoomLevel);
+      zoomLevel = Math.min(3, zoomLevel);
+
+      double xOffsetToCenter = old_xOffsetToCenter * zoomLevel / oldZoomLevel;
+      double yOffsetToCenter = old_yOffsetToCenter * zoomLevel / oldZoomLevel;
+
+      this.mapOffset.translate((int) Math.round(old_xOffsetToCenter - xOffsetToCenter),
+            (int) Math.round(old_yOffsetToCenter - yOffsetToCenter));
+
+      mapCenterCalculator.needRecalculate = true;
+      landSizeCalculator.needRecalculate = true;
+
+      this.backgroundPainting.data.updatePainting(new CataneMapJob(this.getLandSize(), this.getMapCenter())).await();
+      this.background.repaint();
+   }
+
+   private Point mapOffset = new Point(0, 0);
+
+   public void moveWithShiftCallback(int xOffset, int yOffset) {
+      mapOffset.translate(xOffset, yOffset);
+
+      this.backgroundPainting.data.updatePainting(new CataneMapJob(this.getLandSize(), this.getMapCenter())).await();
+      this.background.repaint();
+      mapCenterCalculator.needRecalculate = true;
    }
 
    //
@@ -90,28 +190,106 @@ public class View extends JFrame {
 
    final ComponentListener defaultComponentListener = new ComponentListener() {
       @Override
-      public void componentHidden(ComponentEvent e) {
+      public void componentHidden(ComponentEvent event) {
       }
 
       @Override
-      public void componentMoved(ComponentEvent e) {
+      public void componentMoved(ComponentEvent event) {
       }
 
       @Override
-      public void componentResized(ComponentEvent e) {
-         resizeCallback(e);
+      public void componentResized(ComponentEvent _event) {
+         resizeCallback();
       }
 
       @Override
-      public void componentShown(ComponentEvent e) {
+      public void componentShown(ComponentEvent event) {
+      }
+   };
+
+   final MouseWheelListener defaultMouseWheelListener = new MouseWheelListener() {
+      private boolean disponible = true;
+
+      @Override
+      public void mouseWheelMoved(MouseWheelEvent event) {
+         int notches = event.getWheelRotation();
+
+         if (!disponible)
+            return;
+
+         me.zoomCallback(notches < 0, event.getPoint());
+
+         this.disponible = false;
+
+         new Timeout(() -> {
+            this.disponible = true;
+         }, 50);
+
+      }
+
+   };
+
+   final MouseInputListener defaultMouseInputListener = new MouseInputListener() {
+
+      @Override
+      public void mouseClicked(MouseEvent event) {
+
+      }
+
+      @Override
+      public void mouseEntered(MouseEvent event) {
+      }
+
+      @Override
+      public void mouseExited(MouseEvent event) {
+      }
+
+      @Override
+      public void mousePressed(MouseEvent event) {
+      }
+
+      @Override
+      public void mouseReleased(MouseEvent event) {
+         this.oldPosition = null;
+      }
+
+      Point oldPosition = null;
+      private boolean disponible = true;
+
+      @Override
+      public void mouseDragged(MouseEvent event) {
+         if (!disponible)
+            return;
+         if (oldPosition == null) {
+            this.oldPosition = event.getPoint();
+            return;
+         }
+
+         if (event.isShiftDown())
+            moveWithShiftCallback(event.getX() - (int) this.oldPosition.getX(),
+                  event.getY() - (int) this.oldPosition.getY());
+         this.oldPosition = event.getPoint();
+         new Timeout(() -> {
+            this.disponible = true;
+         }, 2);
+      }
+
+      @Override
+      public void mouseMoved(MouseEvent event) {
+         Optional<Land> land = MouseControl
+               .positionToLandCoord(event.getPoint(), me.getLandSize(), me.getMapCenter())
+               .map(coord -> GameVariables.map.get(coord));
+         // System.out.println(land);
+         // System.out.println("moved");
+         // System.out.println(event.getPoint());
       }
    };
 }
 
 class BackgroundPanel extends JPanel {
-   private final Painting painting;
+   private final Box<Painting> painting;
 
-   BackgroundPanel(Painting painting) {
+   BackgroundPanel(Box<Painting> painting) {
       super();
       this.painting = painting;
    }
@@ -119,7 +297,7 @@ class BackgroundPanel extends JPanel {
    @Override
    public void paint(Graphics g) {
       // System.out.println("try to paint back");
-      painting.paintTo(this, (Graphics2D) g).await();
+      painting.data.paintTo(this, (Graphics2D) g).await();
    }
 
    @Override

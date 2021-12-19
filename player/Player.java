@@ -1,10 +1,7 @@
 package player;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
 
 import map.constructions.Building;
 import map.constructions.Route;
@@ -14,8 +11,6 @@ import player.plays.Build;
 import player.plays.LunchDices;
 import player.plays.PlaceThief;
 import player.plays.Play;
-
-import java.awt.Image;
 
 public abstract class Player {
    public Inventory ressources;
