@@ -12,6 +12,7 @@ import util_my.Box;
 import util_my.Coord;
 import util_my.HexagonalGrids;
 import util_my.Promise;
+import view.painting.jobs.CataneMapJob;
 
 public class CataneMap extends HexagonalGrids<Land> {
    public final static Promise<Image> backgroundImage = ViewVariables.importImage("assets/Background.png");
@@ -25,6 +26,7 @@ public class CataneMap extends HexagonalGrids<Land> {
             this.getAll().stream().filter((land) -> {
                return (land instanceof Desert);
             }).findFirst().orElse(this.get(new Coord(0, 0))));
+      CataneMapJob.init(this);
    }
 
    private void initRandomLand() {

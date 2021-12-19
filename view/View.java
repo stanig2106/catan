@@ -21,6 +21,7 @@ import javax.swing.event.MouseInputListener;
 import globalVariables.GameVariables;
 import map.Land;
 import util_my.Box;
+import util_my.Coord;
 import util_my.Promise;
 import util_my.Timeout;
 import view.input.MouseControl;
@@ -151,19 +152,19 @@ public class View extends JFrame {
       if ((zoomLevel == 0.75 && !zoomUp) || (zoomLevel == 3 && zoomUp))
          return;
 
-      double old_xOffsetToCenter = (origine.getX() - getMapCenter().getX());
-      double old_yOffsetToCenter = (origine.getY() - getMapCenter().getY());
+      double old_xDistanceToCenter = (origine.getX() - getMapCenter().getX());
+      double old_yDistanceToCenter = (origine.getY() - getMapCenter().getY());
       double oldZoomLevel = zoomLevel;
 
       zoomLevel += zoomUp ? 0.25 : -0.25;
       zoomLevel = Math.max(0.75, zoomLevel);
       zoomLevel = Math.min(3, zoomLevel);
 
-      double xOffsetToCenter = old_xOffsetToCenter * zoomLevel / oldZoomLevel;
-      double yOffsetToCenter = old_yOffsetToCenter * zoomLevel / oldZoomLevel;
+      double xDistanceToCenter = old_xDistanceToCenter * zoomLevel / oldZoomLevel;
+      double yDistanceToCenter = old_yDistanceToCenter * zoomLevel / oldZoomLevel;
 
-      this.mapOffset.translate((int) Math.round(old_xOffsetToCenter - xOffsetToCenter),
-            (int) Math.round(old_yOffsetToCenter - yOffsetToCenter));
+      this.mapOffset.translate((int) Math.round(old_xDistanceToCenter - xDistanceToCenter),
+            (int) Math.round(old_yDistanceToCenter - yDistanceToCenter));
 
       mapCenterCalculator.needRecalculate = true;
       landSizeCalculator.needRecalculate = true;
@@ -276,10 +277,18 @@ public class View extends JFrame {
 
       @Override
       public void mouseMoved(MouseEvent event) {
-         Optional<Land> land = MouseControl
-               .positionToLandCoord(event.getPoint(), me.getLandSize(), me.getMapCenter())
-               .map(coord -> GameVariables.map.get(coord));
-         // System.out.println(land);
+         Optional<Coord> coord = MouseControl.positionToLandCoord(event.getPoint(), me.getLandSize(),
+               me.getMapCenter());
+         if (coord.isEmpty())
+            return;
+         Land land = GameVariables.map.get(coord.get());
+         System.out.println(land);
+         Point center = CataneMapJob.landsPosition.get(coord.get());
+         double distance = center.distance(event.getPoint());
+         System.out.println(distance);
+         System.out.println(0.70 * me.getLandSize());
+         if (distance > 0.70 * me.getLandSize())
+            System.out.println("bord");
          // System.out.println("moved");
          // System.out.println(event.getPoint());
       }

@@ -8,7 +8,10 @@ import java.awt.Point;
 import java.awt.geom.AffineTransform;
 import java.awt.image.ImageObserver;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import Jama.Matrix;
 import globalVariables.GameVariables;
@@ -26,13 +29,32 @@ import view.painting.Painting.PaintingJob;
 
 public class CataneMapJob extends PaintingJob {
    public final BackgroundJob backgroundJob = new BackgroundJob();
-
+   public static Map<Coord, Point> landsPosition;
    private final int landSize;
    private final Point mapCenter;
 
    public CataneMapJob(int landSize, Point mapCenter) {
       this.landSize = landSize;
       this.mapCenter = mapCenter;
+   }
+
+   public static void init(CataneMap map) { // called after map creation
+      landsPosition = new HashMap<Coord, Point>(map.numberOfCase()) {
+         @Override
+         public Point replace(Coord arg0, Point arg1) {
+            return this.keySet().stream().filter(coord -> coord.equals(arg0)).findFirst()
+                  .map(coord -> super.replace(coord, arg1)).orElse(null);
+         }
+
+         @Override
+         public Point get(Object key) {
+            return this.keySet().stream().filter(coord -> coord.equals(key)).findFirst()
+                  .map(coord -> super.get(coord)).orElse(null);
+         }
+      };
+      map.forEachCoordinate(coord -> {
+         landsPosition.put(coord, null);
+      });
    }
 
    @Override
@@ -75,6 +97,7 @@ class LandJob extends PaintingJob {
          Matrix position = ViewVariables.hexToPixelMatrix.times(coord.toMatrix()).times(size);
          int x = (int) position.get(0, 0);
          int y = (int) position.get(1, 0);
+         CataneMapJob.landsPosition.replace(coord, new Point(x + (int) mapCenter.getX(), y + (int) mapCenter.getY()));
          g.drawImage(GameVariables.map.get(coord).image.await(), x + (int) (mapCenter.getX() - width / 2.),
                y + (int) (mapCenter.getY() - height / 2.), width,
                height,

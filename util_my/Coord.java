@@ -14,4 +14,17 @@ public class Coord {
    public Matrix toMatrix() {
       return new Matrix(new double[][] { { this.x }, { this.y } });
    }
+
+   @Override
+   public boolean equals(Object obj) {
+      if (!(obj instanceof Coord))
+         return false;
+      return ((Coord) (obj)).x == this.x && ((Coord) (obj)).y == this.y;
+   }
+
+   @Override
+   public String toString() {
+      // TODO Auto-generated method stub
+      return "Coord[" + x + "," + y + "]";
+   }
 }
