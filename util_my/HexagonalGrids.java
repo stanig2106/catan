@@ -95,6 +95,14 @@ public class HexagonalGrids<T> {
    }
 
    /**
+    * only check if 2 coord are adjacent, no mater to the content of the map or his
+    * size
+    */
+   public static boolean isCoordAdjacentCoord(Coord c1, Coord c2) {
+      return LandSide.stream().filter((side) -> side.offsetCoord(c1).equals(c2)).findAny().isPresent();
+   }
+
+   /**
     * @throws InvalidCoordinate
     */
    public void forEachAdjacent(Coord c, BiConsumer<T, LandSide> callback) {

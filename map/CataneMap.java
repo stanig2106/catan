@@ -54,7 +54,7 @@ public class CataneMap extends HexagonalGrids<Land> {
 
       Collections.shuffle(res);
 
-      Box<Integer> altIndex = new Box<Integer>(0);
+      Box<Integer> altIndex = Box.of(0);
       int[] altOrders = new int[] { 0, 3, 7, 12, 16, 17, 18, 15, 11, 6, 2, 1, 4, 8, 13, 14, 10, 5, 9 };
       int[] altMove = new int[] { 5, 2, 6, 3, 8, 10, 9, 12, 11, 4, 8, 10, 9, 4, 5, 6, 3, 11 };
       IntStream.of(altOrders).boxed().forEach((Integer altOrder) -> {
@@ -79,7 +79,7 @@ public class CataneMap extends HexagonalGrids<Land> {
 
    @Override
    public String toString() {
-      Box<String> res = new Box<String>("");
+      Box<String> res = Box.of("");
       this.forEachLine((List<Land> line) -> {
          line.forEach((Land land) -> {
             res.data += land + " ";

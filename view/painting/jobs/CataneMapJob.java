@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import Jama.Matrix;
 import globalVariables.GameVariables;
@@ -86,7 +85,7 @@ class LandJob extends PaintingJob {
       g.fillOval((int) (mapCenter.getX()) - (int) (width * 2.75),
             (int) (mapCenter.getY()) - (int) (height * 2.5),
             (int) (width * 5.5),
-            height * 5);
+            (int) (height * 4.75));
 
       g.drawImage(CataneMap.backgroundImage.await(), (int) (mapCenter.getX() -
             11.56 * size / 2.0),

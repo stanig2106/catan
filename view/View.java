@@ -22,6 +22,7 @@ import globalVariables.GameVariables;
 import map.Land;
 import util_my.Box;
 import util_my.Coord;
+import util_my.Line;
 import util_my.Promise;
 import util_my.Timeout;
 import view.input.MouseControl;
@@ -35,8 +36,8 @@ public class View extends JFrame {
    // this.background.getGraphics();
    // DONT USE THE getGraphics method !!
 
-   public final Box<Painting> foregroundPainting = new Box<Painting>();
-   public final Box<Painting> backgroundPainting = new Box<Painting>();
+   public final Box<Painting> foregroundPainting = Box.of();
+   public final Box<Painting> backgroundPainting = Box.of();
    final Canvas foreground;
    public final JPanel background;
    private final View me = this;
@@ -93,11 +94,17 @@ public class View extends JFrame {
       @Override
       public Integer get() {
          if (this.needRecalculate) {
+            readjustZoomLevel();
             this.cachedValue = (int) Math.round(me.content.getHeight() / 10.
                   * me.zoomLevel);
             this.needRecalculate = false;
          }
          return this.cachedValue;
+      }
+
+      public void readjustZoomLevel() {
+         zoomLevel = Math.max(0.75, zoomLevel);
+         zoomLevel = Math.min(3, zoomLevel);
       }
    }
 
@@ -114,11 +121,25 @@ public class View extends JFrame {
       @Override
       public Point get() {
          if (this.needRecalculate) {
+            readjustMapOffset();
             this.cachedValue = new Point((int) (me.content.getWidth() / 2. + me.mapOffset.getX()),
                   (int) (me.content.getHeight() / 2. + me.mapOffset.getY()));
             this.needRecalculate = false;
          }
          return this.cachedValue;
+      }
+
+      public void readjustMapOffset() {
+         if (Math.abs(mapOffset.getX()) > me.content.getWidth() / 2. * zoomLevel * 0.70)
+            mapOffset = new Point(
+                  (int) Math.min(me.content.getWidth() / 2. * zoomLevel * 0.70,
+                        Math.max(me.content.getWidth() / -2. * zoomLevel * 0.70, mapOffset.getX())),
+                  (int) mapOffset.getY());
+         if (Math.abs(mapOffset.getY()) > me.content.getHeight() / 2. * zoomLevel * 0.70)
+            mapOffset = new Point(
+                  (int) mapOffset.getX(),
+                  (int) Math.min(me.content.getHeight() / 2. * zoomLevel * 0.70,
+                        Math.max(me.content.getHeight() / -2. * zoomLevel * 0.70, mapOffset.getY())));
       }
    }
 
@@ -157,8 +178,7 @@ public class View extends JFrame {
       double oldZoomLevel = zoomLevel;
 
       zoomLevel += zoomUp ? 0.25 : -0.25;
-      zoomLevel = Math.max(0.75, zoomLevel);
-      zoomLevel = Math.min(3, zoomLevel);
+      landSizeCalculator.readjustZoomLevel();
 
       double xDistanceToCenter = old_xDistanceToCenter * zoomLevel / oldZoomLevel;
       double yDistanceToCenter = old_yDistanceToCenter * zoomLevel / oldZoomLevel;
@@ -178,9 +198,9 @@ public class View extends JFrame {
    public void moveWithShiftCallback(int xOffset, int yOffset) {
       mapOffset.translate(xOffset, yOffset);
 
+      mapCenterCalculator.needRecalculate = true;
       this.backgroundPainting.data.updatePainting(new CataneMapJob(this.getLandSize(), this.getMapCenter())).await();
       this.background.repaint();
-      mapCenterCalculator.needRecalculate = true;
    }
 
    //
@@ -277,20 +297,24 @@ public class View extends JFrame {
 
       @Override
       public void mouseMoved(MouseEvent event) {
-         Optional<Coord> coord = MouseControl.positionToLandCoord(event.getPoint(), me.getLandSize(),
-               me.getMapCenter());
-         if (coord.isEmpty())
-            return;
-         Land land = GameVariables.map.get(coord.get());
-         System.out.println(land);
-         Point center = CataneMapJob.landsPosition.get(coord.get());
-         double distance = center.distance(event.getPoint());
-         System.out.println(distance);
-         System.out.println(0.70 * me.getLandSize());
-         if (distance > 0.70 * me.getLandSize())
-            System.out.println("bord");
-         // System.out.println("moved");
-         // System.out.println(event.getPoint());
+         MouseControl.MousePositionSummary mouseSummary = MouseControl.getMousePositionSummary(event.getPoint(),
+               me.getLandSize(), me.getMapCenter());
+         System.out.println(mouseSummary.nearestLandCoord);
+         System.out.println(mouseSummary.nearestLandCorner);
+         System.out.println(mouseSummary.nearestLandSide);
+         System.out.println("---");
+         // Optional<Coord> coord = MouseControl.positionToLandCoord(event.getPoint(),
+         // me.getLandSize(),
+         // me.getMapCenter());
+         // if (coord.isEmpty())
+         // return;
+         // Land land = GameVariables.map.get(coord.get());
+         // // System.out.println(land);
+         // Point center = CataneMapJob.landsPosition.get(coord.get());
+         // Line line = new Line(center, event.getPoint());
+         // // System.out.println(line.distance());
+         // // if (line.distance() > 0.70 * me.getLandSize())
+         // System.out.println(Line.abscise().angleV1(line));
       }
    };
 }
@@ -319,15 +343,12 @@ class BackgroundPanel extends JPanel {
                   || trace.getClassName().startsWith("java.awt"))
                return super.getGraphics();
             else
-               throw new Error("I don't know why, but don't call getGraphics on background...");
+               throw new Error("Don't call getGraphics on background...");
          }
          if (trace.getMethodName().equals("getGraphics")) {
             check = true;
          }
       }
-      throw new Error("I don't know why, but don't call getGraphics on background...");
-
-      // // System.out.println("I don't know why, but don't call getGraphics on
-      // // background...");
+      throw new Error("Don't call getGraphics on background...");
    }
 };
