@@ -1,16 +1,13 @@
 package view.painting.jobs;
 
+import java.awt.AlphaComposite;
 import java.awt.Dimension;
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.ImageObserver;
-import java.awt.AlphaComposite;
 
 import map.constructions.Building;
-import map.constructions.Route;
 import util_my.directions.LandCorner;
-import util_my.directions.LandSide;
 import view.painting.Painting.PaintingJob;
 
 public class OneBuildingJob extends PaintingJob {

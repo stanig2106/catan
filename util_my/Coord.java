@@ -24,7 +24,6 @@ public class Coord {
 
    @Override
    public String toString() {
-      // TODO Auto-generated method stub
       return "Coord[" + x + "," + y + "]";
    }
 }

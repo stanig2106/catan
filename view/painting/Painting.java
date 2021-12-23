@@ -1,9 +1,9 @@
 package view.painting;
 
 import java.awt.Canvas;
-import java.awt.Point;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import java.util.Optional;
@@ -11,7 +11,6 @@ import java.util.Optional;
 import javax.swing.JPanel;
 
 import util_my.Promise;
-import java.awt.Rectangle;
 
 public class Painting {
    private BufferedImage image;
@@ -57,7 +56,8 @@ public class Painting {
             resolve.accept(null);
             return;
          }
-         if (oldWidth == this.width && oldHeight == this.height && oldJob == this.job && !force) {
+         if (oldWidth == this.width && oldHeight == this.height && oldJob == this.job && !force
+               && !this.job.needReload()) {
             // System.out.println("Already worked");
             resolve.accept(null);
             return;
@@ -170,6 +170,10 @@ public class Painting {
    public static abstract class PaintingJob {
       public final void paint(Graphics2D g, Dimension dim) {
          this.paint(g, dim, null);
+      }
+
+      public boolean needReload() {
+         return false;
       }
 
       abstract public void paint(Graphics2D g, Dimension dim, ImageObserver imageObserver);

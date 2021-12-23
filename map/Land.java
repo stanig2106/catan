@@ -29,7 +29,7 @@ import globalVariables.ViewVariables;
 import java.awt.*;
 
 public abstract class Land {
-   protected int number;
+   protected int number = -1;
    private final Optional<Ressources> produce;
    public final Map<LandSide, Optional<Land>> neighbors = new HashMap<LandSide, Optional<Land>>() {
       {

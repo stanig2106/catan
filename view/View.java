@@ -8,10 +8,8 @@ import java.awt.Point;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 import javax.swing.JFrame;
@@ -20,20 +18,15 @@ import javax.swing.JPanel;
 import javax.swing.event.MouseInputListener;
 
 import globalVariables.GameVariables;
-import map.Land;
 import util_my.Box;
-import util_my.Coord;
-import util_my.Line;
 import util_my.Promise;
 import util_my.Timeout;
-import view.inputCalculs.MouseControl;
 import view.inputs.BuildInputController;
 import view.inputs.InputController;
 import view.painting.Painting;
-import view.painting.jobs.CataneMapJob;
 import view.painting.jobs.LoadingJob;
 import view.painting.jobs.NullJob;
-import view.painting.jobs.TestJob;
+import view.painting.jobs.gameInterface.FullMenuJob;
 
 public class View extends JFrame {
    // this.background.getGraphics();
@@ -58,10 +51,13 @@ public class View extends JFrame {
       this.content.setVisible(true);
       super.setVisible(true);
 
-      Promise<Painting> cataneMapPainting = Painting.newPainting(this.content.getSize(),
-            new CataneMapJob(this.getLandSize(), this.getMapCenter()));
-      this.backgroundPainting.data = Painting.newPainting(this.content.getSize(), new LoadingJob()).await();
-      this.foregroundPainting.data = Painting.newPainting(this.content.getSize(), new NullJob()).await();
+      // Promise<Painting> cataneMapPainting =
+      // Painting.newPainting(this.getSize(),
+      // new CataneMapJob(this.getLandSize(), this.getMapCenter()));
+      Promise<Painting> cataneMapPainting = Painting.newPainting(this.getContentSize(),
+            new FullMenuJob());
+      this.backgroundPainting.data = Painting.newPainting(this.getContentSize(), new LoadingJob()).await();
+      this.foregroundPainting.data = Painting.newPainting(this.getContentSize(), new NullJob()).await();
       this.foreground = new Canvas() {
          @Override
          public void paint(Graphics g) {
@@ -71,10 +67,10 @@ public class View extends JFrame {
          }
       };
 
-      this.foreground.setSize(this.content.getSize());
+      this.foreground.setSize(this.getContentSize());
 
       this.background = new BackgroundPanel(this.backgroundPainting);
-      this.background.setSize(this.content.getSize());
+      this.background.setSize(this.getContentSize());
 
       this.content.add(this.foreground, 2);
       this.content.add(this.background, 1);
@@ -93,7 +89,6 @@ public class View extends JFrame {
 
       this.background.repaint();
       this.backgroundPainting.data = cataneMapPainting.await();
-      this.foregroundPainting.data = Painting.newPainting(this.content.getSize(), new TestJob()).await();
       this.background.repaint();
       InputController buildInputController = new BuildInputController(this);
       buildInputController.enable(GameVariables.players.get(0));
@@ -102,6 +97,10 @@ public class View extends JFrame {
       this.content.addMouseWheelListener(buildInputController);
 
       this.repaintLoop();
+   }
+
+   public Dimension getContentSize() {
+      return this.content.getSize();
    }
 
    private final void repaintLoop() {
@@ -179,9 +178,9 @@ public class View extends JFrame {
    public void resizeCallback() {
       landSizeCalculator.needRecalculate = true;
       mapCenterCalculator.needRecalculate = true;
-      this.background.setSize(this.content.getSize());
+      this.background.setSize(this.getContentSize());
       this.backgroundPainting.data
-            .updatePainting(this.content.getSize(), new CataneMapJob(this.getLandSize(), this.getMapCenter())).await();
+            .updatePainting(this.getContentSize()).await();
       this.backgroundPainting.data.destroyBackup();
 
       // this.foreground.setSize(super.getWidth() / 2, super.getHeight());
@@ -212,7 +211,7 @@ public class View extends JFrame {
       mapCenterCalculator.needRecalculate = true;
       landSizeCalculator.needRecalculate = true;
 
-      this.backgroundPainting.data.updatePainting(new CataneMapJob(this.getLandSize(), this.getMapCenter())).await();
+      this.backgroundPainting.data.updatePainting().await();
       this.background.repaint();
    }
 
@@ -222,7 +221,7 @@ public class View extends JFrame {
       mapOffset.translate(xOffset, yOffset);
 
       mapCenterCalculator.needRecalculate = true;
-      this.backgroundPainting.data.updatePainting(new CataneMapJob(this.getLandSize(), this.getMapCenter())).await();
+      this.backgroundPainting.data.updatePainting().await();
       this.background.repaint();
    }
 
