@@ -193,7 +193,7 @@ public abstract class Land {
          throw new BUILD.COLONY_ON_COLONY();
    }
 
-   public boolean canSetRoute(LandSide side, Route route) {
+   public boolean canSetRoute(LandSide side, Route route) { // FIXME: check color player
       if (this.borders.get(side).adjacentBorders.stream().noneMatch(adjacentBorder -> adjacentBorder.route.isPresent())
             && this.borders.get(side).adjacentCorners.stream()
                   .noneMatch(adjacentCorner -> adjacentCorner.building.isPresent()))

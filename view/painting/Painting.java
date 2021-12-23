@@ -1,6 +1,7 @@
 package view.painting;
 
 import java.awt.Canvas;
+import java.awt.Point;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -10,6 +11,7 @@ import java.util.Optional;
 import javax.swing.JPanel;
 
 import util_my.Promise;
+import java.awt.Rectangle;
 
 public class Painting {
    private BufferedImage image;
@@ -93,15 +95,20 @@ public class Painting {
 
    public Promise<Void> paintTo(JPanel to, Graphics2D g) {
       return new Promise<Void>((resolve, reject) -> {
-         Graphics2D g_ = g == null ? (Graphics2D) to.getGraphics() : g;
-         g_.drawImage(this.image, 0, 0, to);
+         g.drawImage(this.image, 0, 0, to);
          resolve.accept(null);
       });
    }
 
-   public void paintToAwait(JPanel to, Graphics2D g) {
-      Graphics2D g_ = g == null ? (Graphics2D) to.getGraphics() : g;
-      g_.drawImage(this.image, 0, 0, to);
+   public Promise<Void> paintSubImageTo(Canvas to, Rectangle rect) {
+      return new Promise<Void>((resolve, reject) -> {
+         to.getGraphics().drawImage(this.image, 0, 0, (int) rect.getWidth(), (int) rect.getHeight(),
+               (int) rect.getX(),
+               (int) rect.getY(),
+               (int) rect.getX() + (int) rect.getWidth(),
+               (int) rect.getY() + (int) rect.getHeight(), to);
+         resolve.accept(null);
+      });
    }
 
    public Promise<Void> paintTo(Canvas to) {
@@ -161,10 +168,11 @@ public class Painting {
    }
 
    public static abstract class PaintingJob {
-      public void paint(Graphics2D g, Dimension dim) {
+      public final void paint(Graphics2D g, Dimension dim) {
          this.paint(g, dim, null);
       }
 
       abstract public void paint(Graphics2D g, Dimension dim, ImageObserver imageObserver);
    }
+
 }

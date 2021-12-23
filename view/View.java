@@ -8,6 +8,7 @@ import java.awt.Point;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.util.Optional;
@@ -25,7 +26,9 @@ import util_my.Coord;
 import util_my.Line;
 import util_my.Promise;
 import util_my.Timeout;
-import view.input.MouseControl;
+import view.inputCalculs.MouseControl;
+import view.inputs.BuildInputController;
+import view.inputs.InputController;
 import view.painting.Painting;
 import view.painting.jobs.CataneMapJob;
 import view.painting.jobs.LoadingJob;
@@ -38,11 +41,11 @@ public class View extends JFrame {
 
    public final Box<Painting> foregroundPainting = Box.of();
    public final Box<Painting> backgroundPainting = Box.of();
-   final Canvas foreground;
+   public final Canvas foreground;
    public final JPanel background;
    private final View me = this;
 
-   private final JLayeredPane content;
+   public final JLayeredPane content;
 
    public View() {
       super("Catane");
@@ -62,10 +65,13 @@ public class View extends JFrame {
       this.foreground = new Canvas() {
          @Override
          public void paint(Graphics g) {
+            System.out.println("draw front");
+            me.backgroundPainting.data.paintSubImageTo(this, this.getBounds()).await();
             me.foregroundPainting.data.paintTo(this).await();
          }
       };
-      this.foreground.setSize(0, 0);
+
+      this.foreground.setSize(this.content.getSize());
 
       this.background = new BackgroundPanel(this.backgroundPainting);
       this.background.setSize(this.content.getSize());
@@ -81,10 +87,27 @@ public class View extends JFrame {
       this.content.addMouseMotionListener(this.defaultMouseInputListener);
       this.content.addMouseWheelListener(this.defaultMouseWheelListener);
 
+      this.foreground.addMouseListener(this.redirectMouseInputListener);
+      this.foreground.addMouseMotionListener(this.redirectMouseInputListener);
+      this.foreground.addMouseWheelListener(this.redirectMouseWheelListener);
+
       this.background.repaint();
       this.backgroundPainting.data = cataneMapPainting.await();
       this.foregroundPainting.data = Painting.newPainting(this.content.getSize(), new TestJob()).await();
       this.background.repaint();
+      InputController buildInputController = new BuildInputController(this);
+      buildInputController.enable(GameVariables.players.get(0));
+      this.content.addMouseListener(buildInputController);
+      this.content.addMouseMotionListener(buildInputController);
+      this.content.addMouseWheelListener(buildInputController);
+
+      this.repaintLoop();
+   }
+
+   private final void repaintLoop() {
+      this.backgroundPainting.data.forceUpdatePainting().await();
+      this.background.repaint();
+      new Timeout(this::repaintLoop, 1000);
    }
 
    final private class LandSizeCalculator implements Supplier<Integer> {
@@ -297,24 +320,63 @@ public class View extends JFrame {
 
       @Override
       public void mouseMoved(MouseEvent event) {
-         MouseControl.MousePositionSummary mouseSummary = MouseControl.getMousePositionSummary(event.getPoint(),
-               me.getLandSize(), me.getMapCenter());
-         System.out.println(mouseSummary.nearestLandCoord);
-         System.out.println(mouseSummary.nearestLandCorner);
-         System.out.println(mouseSummary.nearestLandSide);
-         System.out.println("---");
-         // Optional<Coord> coord = MouseControl.positionToLandCoord(event.getPoint(),
-         // me.getLandSize(),
-         // me.getMapCenter());
-         // if (coord.isEmpty())
-         // return;
-         // Land land = GameVariables.map.get(coord.get());
-         // // System.out.println(land);
-         // Point center = CataneMapJob.landsPosition.get(coord.get());
-         // Line line = new Line(center, event.getPoint());
-         // // System.out.println(line.distance());
-         // // if (line.distance() > 0.70 * me.getLandSize())
-         // System.out.println(Line.abscise().angleV1(line));
+
+      }
+   };
+
+   final MouseWheelListener redirectMouseWheelListener = new MouseWheelListener() {
+      @Override
+      public void mouseWheelMoved(MouseWheelEvent event) {
+         event.setSource(me.content);
+         event.translatePoint(me.foreground.getX(), me.foreground.getY());
+         me.content.dispatchEvent(event);
+      }
+
+   };
+
+   final MouseInputListener redirectMouseInputListener = new MouseInputListener() {
+
+      @Override
+      public void mouseClicked(MouseEvent event) {
+         event.setSource(me.content);
+         event.translatePoint(me.foreground.getX(), me.foreground.getY());
+         me.content.dispatchEvent(event);
+      }
+
+      @Override
+      public void mouseEntered(MouseEvent event) {
+      }
+
+      @Override
+      public void mouseExited(MouseEvent event) {
+      }
+
+      @Override
+      public void mousePressed(MouseEvent event) {
+         event.setSource(me.content);
+         event.translatePoint(me.foreground.getX(), me.foreground.getY());
+         me.content.dispatchEvent(event);
+      }
+
+      @Override
+      public void mouseReleased(MouseEvent event) {
+         event.setSource(me.content);
+         event.translatePoint(me.foreground.getX(), me.foreground.getY());
+         me.content.dispatchEvent(event);
+      }
+
+      @Override
+      public void mouseDragged(MouseEvent event) {
+         event.setSource(me.content);
+         event.translatePoint(me.foreground.getX(), me.foreground.getY());
+         me.content.dispatchEvent(event);
+      }
+
+      @Override
+      public void mouseMoved(MouseEvent event) {
+         event.setSource(me.content);
+         event.translatePoint(me.foreground.getX(), me.foreground.getY());
+         me.content.dispatchEvent(event);
       }
    };
 }

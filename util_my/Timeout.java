@@ -25,6 +25,15 @@ public class Timeout {
          submit(delay, false);
    }
 
+   public Timeout(Runnable task) {
+      this(task, 0);
+   }
+
+   public Timeout(long delay) {
+      this(() -> {
+      }, delay);
+   }
+
    private void submit(long delay, boolean force) {
       this.taskStatus = Optional.of(executor.submit(() -> {
          if (delay > 0)

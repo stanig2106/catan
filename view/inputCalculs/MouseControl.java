@@ -1,4 +1,4 @@
-package view.input;
+package view.inputCalculs;
 
 import java.awt.*;
 import java.util.Optional;
@@ -9,7 +9,6 @@ import globalVariables.ViewVariables;
 import map.CataneMap;
 import util_my.Box;
 import util_my.Coord;
-import util_my.HexagonalGrids;
 import util_my.Line;
 import util_my.Pair;
 import util_my.directions.LandCorner;
@@ -115,6 +114,39 @@ public class MouseControl {
          this.nearestLandCoord = Optional.of(nearestLandCoord);
          this.nearestLandSide = Optional.empty();
          this.nearestLandCorner = Optional.of(nearestLandCorner);
+      }
+
+      @Override
+      public boolean equals(Object obj) {
+         if (!(obj instanceof MousePositionSummary))
+            return false;
+         MousePositionSummary summary = (MousePositionSummary) obj;
+         return summary.nearestLandCoord.equals(this.nearestLandCoord)
+               && summary.nearestLandCorner.equals(this.nearestLandCorner)
+               && summary.nearestLandSide.equals(this.nearestLandSide);
+      }
+
+      public boolean same(MousePositionSummary summary) {
+         if (this.equals(summary))
+            return true;
+
+         if (summary.nearestLandCoord.isEmpty() || this.nearestLandCoord.isEmpty()
+               || summary.nearestLandCoord.get().equals(this.nearestLandCoord.get())
+               || !CataneMap.isCoordAdjacentCoord(summary.nearestLandCoord.get(), this.nearestLandCoord.get()))
+            return false;
+
+         if (this.nearestLandSide.isPresent() && summary.nearestLandSide.isPresent()) {
+            return GameVariables.map.get(this.nearestLandCoord.get()).borders.values().contains(
+                  GameVariables.map.get(summary.nearestLandCoord.get()).borders.get(summary.nearestLandSide.get()));
+         }
+
+         if (this.nearestLandCorner.isPresent() && summary.nearestLandCorner.isPresent()) {
+            return GameVariables.map.get(this.nearestLandCoord.get()).corners.values().contains(
+                  GameVariables.map.get(summary.nearestLandCoord.get()).corners.get(summary.nearestLandCorner.get()));
+         }
+
+         return false;
+
       }
    }
 }
