@@ -24,7 +24,7 @@ public enum LandCorner {
          case bottomLeft:
             return topLeft;
          default:
-            throw new Error("Unknown side");
+            throw new EnumConstantNotPresentException(this.getClass(), this.name());
       }
    }
 
@@ -43,7 +43,7 @@ public enum LandCorner {
          case bottomLeft:
             return bottom;
          default:
-            throw new Error("Unknown side");
+            throw new EnumConstantNotPresentException(this.getClass(), this.name());
       }
    }
 

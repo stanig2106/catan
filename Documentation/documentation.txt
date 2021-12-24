@@ -1,5 +1,5 @@
 Rules : 
-https://www.regledujeu.fr/catane/
+https://www.regledujeu.fr/Catan/
 file://./rules.pdf
 
 Sujet : 

@@ -26,7 +26,7 @@ public enum LandSide {
          case bottomRight:
             return new Coord(c.x, c.y + 1);
          default:
-            throw new Error("Unknown side");
+            throw new EnumConstantNotPresentException(this.getClass(), this.name());
       }
    }
 
@@ -45,7 +45,7 @@ public enum LandSide {
          case bottomRight:
             return topLeft;
          default:
-            throw new Error("Unknown side");
+            throw new EnumConstantNotPresentException(this.getClass(), this.name());
       }
    }
 
@@ -68,7 +68,7 @@ public enum LandSide {
          case bottomRight:
             return bottomLeft;
          default:
-            throw new Error("Unknown side");
+            throw new EnumConstantNotPresentException(this.getClass(), this.name());
       }
    }
 
@@ -87,7 +87,7 @@ public enum LandSide {
          case bottomRight:
             return right;
          default:
-            throw new Error("Unknown side");
+            throw new EnumConstantNotPresentException(this.getClass(), this.name());
       }
    }
 
@@ -106,7 +106,7 @@ public enum LandSide {
          case bottomRight:
             return LandCorner.bottom;
          default:
-            throw new Error("Unknown side");
+            throw new EnumConstantNotPresentException(this.getClass(), this.name());
       }
    }
 
@@ -126,7 +126,7 @@ public enum LandSide {
             return LandCorner.bottomRight;
 
          default:
-            throw new Error("Unknown side");
+            throw new EnumConstantNotPresentException(this.getClass(), this.name());
       }
    }
 

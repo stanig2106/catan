@@ -25,21 +25,22 @@ import util_my.directions.LandSide;
 import view.View;
 import view.inputCalculs.MouseControl;
 import view.inputCalculs.MouseControl.MousePositionSummary;
-import view.painting.Painting;
 import view.painting.Painting.PaintingJob;
 import view.painting.jobs.OneBuildingJob;
 import view.painting.jobs.OneRouteJob;
 
 public class BuildInputController extends InputController {
    final BuildInputController me = this;
+   public Player player;
 
-   public BuildInputController(final View view) {
+   public BuildInputController(final View view, Player player) {
       super(view);
+      this.player = player;
    }
 
    private void displayRoute(final Coord coord, final LandSide landSide) {
       final int size = view.getLandSize();
-      final PaintingJob job = new OneRouteJob(new Route(me.player.get()), size, landSide);
+      final PaintingJob job = new OneRouteJob(new Route(me.player), size, landSide);
       final int routeHeight = size;
       final int routeWidth = (int) (size / 3.);
       final Dimension paintingDim;
@@ -63,7 +64,7 @@ public class BuildInputController extends InputController {
       }
       final Point mapCenter = view.getMapCenter();
 
-      view.foregroundPainting.data = Painting.newPainting(paintingDim, job).await();
+      view.foregroundPainting.updatePainting(paintingDim, job).await();
       final Matrix positionMatrix = ViewVariables.hexToPixelMatrix.times(coord.toMatrix()).times(size);
 
       final Point position = new Point((int) positionMatrix.get(0, 0), (int) positionMatrix.get(1, 0));
@@ -110,7 +111,7 @@ public class BuildInputController extends InputController {
    private void displayBuilding(final Coord coord, final LandCorner landCorner,
          Function<Player, Building> buildingNew) {
       final int size = view.getLandSize();
-      final PaintingJob job = new OneBuildingJob(buildingNew.apply(this.player.get()), size, landCorner);
+      final PaintingJob job = new OneBuildingJob(buildingNew.apply(this.player), size, landCorner);
 
       final int buildingHeight = (int) (size / 1.7);
       final int buildingWidth = (int) (size / 1.7);
@@ -118,7 +119,7 @@ public class BuildInputController extends InputController {
 
       final Point mapCenter = view.getMapCenter();
 
-      view.foregroundPainting.data = Painting.newPainting(buildingWidth, buildingHeight, job).await();
+      view.foregroundPainting.updatePainting(buildingWidth, buildingHeight, job).await();
       final Matrix positionMatrix = ViewVariables.hexToPixelMatrix.times(coord.toMatrix()).times(size);
 
       final Point position = new Point((int) positionMatrix.get(0, 0), (int) positionMatrix.get(1, 0));
@@ -187,14 +188,14 @@ public class BuildInputController extends InputController {
 
       if (summary.nearestLandSide.isPresent()
             && GameVariables.map.get(summary.nearestLandCoord.get()).canSetRoute(summary.nearestLandSide.get(),
-                  new Route(this.player.get())))
+                  new Route(this.player)))
          this.displayRoute(summary.nearestLandCoord.get(), summary.nearestLandSide.get());
       else if (summary.nearestLandCorner.isPresent())
          if (GameVariables.map.get(summary.nearestLandCoord.get()).canSetBuilding(summary.nearestLandCorner.get(),
-               new Colony(this.player.get())))
+               new Colony(this.player)))
             this.displayColony(summary.nearestLandCoord.get(), summary.nearestLandCorner.get());
          else if (GameVariables.map.get(summary.nearestLandCoord.get()).canSetBuilding(summary.nearestLandCorner.get(),
-               new City​​(this.player.get())))
+               new City​​(this.player)))
             this.displayCity(summary.nearestLandCoord.get(), summary.nearestLandCorner.get());
          else
             view.foreground.setBounds(0, 0, 0, 0);
@@ -218,14 +219,14 @@ public class BuildInputController extends InputController {
 
       if (summary.nearestLandSide.isPresent()
             && GameVariables.map.get(summary.nearestLandCoord.get()).canSetRoute(summary.nearestLandSide.get(),
-                  new Route(this.player.get())))
+                  new Route(this.player)))
          this.displayRoute(summary.nearestLandCoord.get(), summary.nearestLandSide.get());
       else if (summary.nearestLandCorner.isPresent())
          if (GameVariables.map.get(summary.nearestLandCoord.get()).canSetBuilding(summary.nearestLandCorner.get(),
-               new Colony(this.player.get())))
+               new Colony(this.player)))
             this.displayColony(summary.nearestLandCoord.get(), summary.nearestLandCorner.get());
          else if (GameVariables.map.get(summary.nearestLandCoord.get()).canSetBuilding(summary.nearestLandCorner.get(),
-               new City​​(this.player.get())))
+               new City​​(this.player)))
             this.displayCity(summary.nearestLandCoord.get(), summary.nearestLandCorner.get());
          else
             view.foreground.setBounds(0, 0, 0, 0);
@@ -250,12 +251,12 @@ public class BuildInputController extends InputController {
          new Timeout(() -> view.foreground.setBounds(0, 0, 0, 0), 150);
          try {
             GameVariables.map.get(summary.nearestLandCoord.get()).setRoute(summary.nearestLandSide.get(),
-                  new Route(this.player.get()));
+                  new Route(this.player));
          } catch (final BUILD e) {
             return;
          }
 
-         view.backgroundPainting.data.forceUpdatePainting().await();
+         view.backgroundPainting.forceUpdatePainting().await();
          view.background.repaint();
 
       } else if (summary.nearestLandCorner.isPresent()) {
@@ -263,11 +264,11 @@ public class BuildInputController extends InputController {
          new Timeout(() -> view.foreground.setBounds(0, 0, 0, 0), 150);
          try {
             GameVariables.map.get(summary.nearestLandCoord.get()).setBuilding(summary.nearestLandCorner.get(),
-                  new City​​(this.player.get()));
+                  new City​​(this.player));
          } catch (final CITY_WITHOUT_COLONY _e) {
             try {
                GameVariables.map.get(summary.nearestLandCoord.get()).setBuilding(summary.nearestLandCorner.get(),
-                     new Colony(this.player.get()));
+                     new Colony(this.player));
             } catch (final BUILD __e) {
                return;
             }
@@ -275,7 +276,7 @@ public class BuildInputController extends InputController {
             return;
          }
 
-         view.backgroundPainting.data.forceUpdatePainting().await();
+         view.backgroundPainting.forceUpdatePainting().await();
          view.background.repaint();
       }
    }

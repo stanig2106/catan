@@ -6,14 +6,14 @@ import java.util.Optional;
 import Jama.Matrix;
 import globalVariables.GameVariables;
 import globalVariables.ViewVariables;
-import map.CataneMap;
+import map.CatanMap;
 import util_my.Box;
 import util_my.Coord;
 import util_my.Line;
 import util_my.Pair;
 import util_my.directions.LandCorner;
 import util_my.directions.LandSide;
-import view.painting.jobs.CataneMapJob;
+import view.painting.jobs.CatanMapJob;
 
 /**
  * MouseControl
@@ -49,13 +49,13 @@ public class MouseControl {
       else {
          Box<Optional<Pair<Coord, Double>>> nearestCoord = Box.of(Optional.empty());
          GameVariables.map.forEachCoordinate(coord -> {
-            if (!CataneMap.isCoordAdjacentCoord(res, coord))
+            if (!CatanMap.isCoordAdjacentCoord(res, coord))
                return;
-            Point center = CataneMapJob.landsPosition.get(coord);
+            Point center = CatanMapJob.landsPosition.get(coord);
             Line line = new Line(center, mousePosition);
             if (line.distance() < 1.10 * landSize
                   && (nearestCoord.data.isEmpty() || nearestCoord.data.get().getValue() > line.distance()))
-               nearestCoord.data = Optional.of(new Pair<Coord, Double>(coord, line.distance()));
+               nearestCoord.data = Optional.of(Pair.of(coord, line.distance()));
          });
          return nearestCoord.data.map(nearestPair -> nearestPair.getKey());
       }
@@ -68,7 +68,7 @@ public class MouseControl {
       if (coord.isEmpty())
          return new MousePositionSummary();
 
-      Point center = CataneMapJob.landsPosition.get(coord.get());
+      Point center = CatanMapJob.landsPosition.get(coord.get());
       Line line = new Line(center, mousePosition);
 
       if (!(line.distance() > 0.70 * landSize))
@@ -132,7 +132,7 @@ public class MouseControl {
 
          if (summary.nearestLandCoord.isEmpty() || this.nearestLandCoord.isEmpty()
                || summary.nearestLandCoord.get().equals(this.nearestLandCoord.get())
-               || !CataneMap.isCoordAdjacentCoord(summary.nearestLandCoord.get(), this.nearestLandCoord.get()))
+               || !CatanMap.isCoordAdjacentCoord(summary.nearestLandCoord.get(), this.nearestLandCoord.get()))
             return false;
 
          if (this.nearestLandSide.isPresent() && summary.nearestLandSide.isPresent()) {

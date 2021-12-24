@@ -17,7 +17,7 @@ public class Colony extends Building {
       {
          Stream.of(Color.values()).forEach(color -> {
             String colorString = color.toString().substring(0, 1).toUpperCase() + color.toString().substring(1);
-            this.put(color, ViewVariables.importImage("assets/colonies/Colony" + colorString + ".png"));
+            this.put(color, ViewVariables.importImage("assets/colonies/Colony" + colorString + ".png", -1));
          });
       }
    };

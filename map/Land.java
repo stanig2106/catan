@@ -205,7 +205,8 @@ public abstract class Land {
       if (this.borders.get(side).adjacentBorders.stream().noneMatch(adjacentBorder -> adjacentBorder.route.isPresent())
             && this.borders.get(side).adjacentCorners.stream()
                   .noneMatch(adjacentCorner -> adjacentCorner.building.isPresent()))
-         throw new BUILD.ORPHELIN_ROUTE();
+         throw new BUILD.ORPHELIN_ROUTE(); // FIXME: sometime, throw but false (top of the map, check links between
+                                           // lands)
       if (this.borders.get(side).route.isPresent())
          throw new BUILD.ROUTE_ON_ROUTE();
       this.borders.get(side).route = Optional.of(route);
@@ -267,7 +268,7 @@ public abstract class Land {
 }
 
 class Hill extends Land {
-   static final Promise<Image> image = ViewVariables.importImage("assets/lands/Hill.png");
+   static final Promise<Image> image = ViewVariables.importImage("assets/lands/Hill.png", 2000);
 
    Hill() {
       super(Optional.of(Ressources.Brick), Hill.image);
@@ -275,7 +276,7 @@ class Hill extends Land {
 }
 
 class Forest extends Land {
-   static final Promise<Image> image = ViewVariables.importImage("assets/lands/Forest.png");
+   static final Promise<Image> image = ViewVariables.importImage("assets/lands/Forest.png", 2000);
 
    Forest() {
       super(Optional.of(Ressources.Lumber), Forest.image);
@@ -284,7 +285,7 @@ class Forest extends Land {
 }
 
 class Mountain extends Land {
-   static final Promise<Image> image = ViewVariables.importImage("assets/lands/Mountain.png");
+   static final Promise<Image> image = ViewVariables.importImage("assets/lands/Mountain.png", 2000);
 
    Mountain() {
       super(Optional.of(Ressources.Ore), Mountain.image);
@@ -292,7 +293,7 @@ class Mountain extends Land {
 }
 
 class Field extends Land {
-   static final Promise<Image> image = ViewVariables.importImage("assets/lands/Field.png");
+   static final Promise<Image> image = ViewVariables.importImage("assets/lands/Field.png", 2000);
 
    Field() {
       super(Optional.of(Ressources.Wheat), Field.image);
@@ -300,7 +301,7 @@ class Field extends Land {
 }
 
 class Pasture extends Land {
-   static final Promise<Image> image = ViewVariables.importImage("assets/lands/Pasture.png");
+   static final Promise<Image> image = ViewVariables.importImage("assets/lands/Pasture.png", 2000);
 
    Pasture() {
       super(Optional.of(Ressources.Wool), Pasture.image);
@@ -308,7 +309,7 @@ class Pasture extends Land {
 }
 
 class Desert extends Land {
-   static final Promise<Image> image = ViewVariables.importImage("assets/lands/Desert.png");
+   static final Promise<Image> image = ViewVariables.importImage("assets/lands/Desert.png", 2000);
 
    Desert() {
       super(Optional.empty(), Desert.image);

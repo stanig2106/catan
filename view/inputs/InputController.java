@@ -12,28 +12,30 @@ import view.View;
 
 public abstract class InputController extends EventListener {
    final View view;
-   protected static List<InputController> enabledInputControllers = new ArrayList<InputController>();
-   protected boolean enabled = false;
-   protected Optional<Player> player = Optional.empty();
 
    InputController(View view) {
       this.view = view;
    }
 
-   public void enable(Player player) {
-      this.player = Optional.of(player);
-      this.enabled = true;
-      InputController.enabledInputControllers.add(this);
-   }
-
-   public void disable() {
-      this.enabled = false;
-      InputController.enabledInputControllers.remove(this);
-   }
-
 }
 
-abstract class EventListener implements MouseInputListener, MouseWheelListener, KeyListener {
+abstract class EventListener implements MouseInputListener, MouseWheelListener, KeyListener, ComponentListener {
+   @Override
+   public void componentHidden(ComponentEvent e) {
+   }
+
+   @Override
+   public void componentMoved(ComponentEvent e) {
+   }
+
+   @Override
+   public void componentResized(ComponentEvent e) {
+   }
+
+   @Override
+   public void componentShown(ComponentEvent e) {
+   }
+
    @Override
    public void mouseEntered(MouseEvent event) {
    }

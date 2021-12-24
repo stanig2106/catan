@@ -17,7 +17,7 @@ public class Route extends Construction {
       {
          Stream.of(Color.values()).forEach(color -> {
             String colorString = color.toString().substring(0, 1).toUpperCase() + color.toString().substring(1);
-            this.put(color, ViewVariables.importImage("assets/routes/Route" + colorString + ".png"));
+            this.put(color, ViewVariables.importImage("assets/routes/Route" + colorString + ".png", -1));
          });
       }
    };

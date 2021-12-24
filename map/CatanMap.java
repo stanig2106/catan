@@ -12,25 +12,25 @@ import util_my.Box;
 import util_my.Coord;
 import util_my.HexagonalGrids;
 import util_my.Promise;
-import view.painting.jobs.CataneMapJob;
+import view.painting.jobs.CatanMapJob;
 
-public class CataneMap extends HexagonalGrids<Land> {
+public class CatanMap extends HexagonalGrids<Land> {
    public final static Promise<Image> backgroundImage = ViewVariables.importImage("assets/Background.png");
 
    final Thief thief;
 
-   public CataneMap() {
+   public CatanMap() {
       super(Config.mapRadius);
       initRandomLand();
       this.thief = new Thief(
             this.getAll().stream().filter((land) -> {
                return (land instanceof Desert);
             }).findFirst().orElse(this.get(new Coord(0, 0))));
-      CataneMapJob.init(this);
+      CatanMapJob.init(this);
    }
 
    private void initRandomLand() {
-      Queue<Land> lands = CataneMap.getRandomLands(this.numberOfCase());
+      Queue<Land> lands = CatanMap.getRandomLands(this.numberOfCase());
       this.forEachCoordinate((Coord c) -> {
          Land land = lands.remove();
          land.coord = c;

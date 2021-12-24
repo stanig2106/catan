@@ -16,7 +16,7 @@ import Jama.Matrix;
 import globalVariables.GameVariables;
 import globalVariables.ViewVariables;
 import map.Border;
-import map.CataneMap;
+import map.CatanMap;
 import map.Corner;
 import map.Land;
 import map.constructions.Building;
@@ -28,7 +28,7 @@ import util_my.directions.LandSide;
 import view.View;
 import view.painting.Painting.PaintingJob;
 
-public class CataneMapJob extends PaintingJob {
+public class CatanMapJob extends PaintingJob {
    public final BackgroundJob backgroundJob = new BackgroundJob();
    public static Map<Coord, Point> landsPosition;
 
@@ -36,11 +36,11 @@ public class CataneMapJob extends PaintingJob {
    int landSize;
    Point mapCenter;
 
-   public CataneMapJob(final View view) {
+   public CatanMapJob(final View view) {
       this.view = view;
    }
 
-   public static void init(CataneMap map) { // called after map creation
+   public static void init(CatanMap map) { // called after map creation
       landsPosition = new HashMap<Coord, Point>(map.numberOfCase()) {
          @Override
          public Point replace(Coord arg0, Point arg1) {
@@ -61,7 +61,7 @@ public class CataneMapJob extends PaintingJob {
 
    @Override
    public void paint(Graphics2D g, Dimension dim, ImageObserver imageObserver) {
-      System.out.println("catane map job !");
+      System.out.println("Catan map job !");
       this.landSize = view.getLandSize();
       this.mapCenter = view.getMapCenter();
 
@@ -70,6 +70,9 @@ public class CataneMapJob extends PaintingJob {
       new NumberJob(this.landSize, this.mapCenter).paint(g, dim, imageObserver);
       new RouteJob(this.landSize, this.mapCenter).paint(g, dim, imageObserver);
       new BuildingJob(this.landSize, this.mapCenter).paint(g, dim, imageObserver);
+
+      System.out.println("done");
+      System.out.println(".");
    }
 
    @Override
@@ -101,7 +104,7 @@ class LandJob extends PaintingJob {
             (int) (width * 5.5),
             (int) (height * 4.75));
 
-      g.drawImage(CataneMap.backgroundImage.await(), (int) (mapCenter.getX() -
+      g.drawImage(CatanMap.backgroundImage.await(), (int) (mapCenter.getX() -
             11.56 * size / 2.0),
             (int) (mapCenter.getY() - 10.11 * size / 2.0),
             (int) (11.56 * size), (int) (10.11 * size), imageObserver);
@@ -110,7 +113,7 @@ class LandJob extends PaintingJob {
          Matrix position = ViewVariables.hexToPixelMatrix.times(coord.toMatrix()).times(size);
          int x = (int) position.get(0, 0);
          int y = (int) position.get(1, 0);
-         CataneMapJob.landsPosition.replace(coord,
+         CatanMapJob.landsPosition.replace(coord,
                new Point(x + (int) mapCenter.getX(), y + (int) mapCenter.getY()));
          g.drawImage(GameVariables.map.get(coord).image.await(), x + (int) (mapCenter.getX() - width / 2.),
                y + (int) (mapCenter.getY() - height / 2.), width,

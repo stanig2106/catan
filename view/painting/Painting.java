@@ -7,10 +7,12 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import javax.swing.JPanel;
 
 import util_my.Promise;
+import view.painting.jobs.AndJob;
 
 public class Painting {
    private BufferedImage image;
@@ -35,8 +37,31 @@ public class Painting {
       });
    }
 
+   public Promise<Void> addJobs(PaintingJob... jobs) {
+      return new Promise<Void>((resolve, reject) -> {
+         final Graphics2D g = (Graphics2D) this.image.getGraphics();
+
+         this.job = new AndJob(this.job, jobs);
+         Stream.of(jobs).forEach(job -> job.paint(g, new Dimension(this.image.getWidth(), this.image.getHeight())));
+
+         resolve.accept(null);
+      });
+   }
+
    public Promise<Void> forceUpdatePainting() {
       return this.updatePainting(width, height, job, true);
+   }
+
+   public Promise<Void> updatePainting(Painting painting) {
+      return this.updatePainting(painting.width, painting.height, painting.job, false);
+   }
+
+   public Promise<Void> updatePainting(Promise<Painting> promisedPainting) {
+      return new Promise<Void>((resolve, reject) -> {
+         final Painting painting = promisedPainting.await();
+         this.updatePainting(painting.width, painting.height, painting.job, false).await();
+         resolve.accept(null);
+      });
    }
 
    public Promise<Void> updatePainting(int width, int height, PaintingJob job) {
