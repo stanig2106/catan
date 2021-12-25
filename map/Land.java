@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -34,7 +35,6 @@ public abstract class Land {
    public final Map<LandSide, Optional<Land>> neighbors = new HashMap<LandSide, Optional<Land>>() {
       {
          Stream.of(LandSide.values()).forEach((landSide) -> this.put(landSide, Optional.empty()));
-
       }
    };
    public final Map<LandSide, Border> borders = new HashMap<LandSide, Border>() {
@@ -110,19 +110,31 @@ public abstract class Land {
 
    public void linkAllBorderAndCorner() {
       this.borders.entrySet().forEach(entry -> {
+         final LandSide landSide = entry.getKey();
+         final Border border = entry.getValue();
          // link border - border
-         Stream.of(entry.getKey().getAdjacentsSides()).map(adjacentsLandSide -> this.borders.get(adjacentsLandSide))
-               .forEach(adjacentBorder -> entry.getValue().adjacentBorders.add(adjacentBorder));
-         // border - corner and corner - border
-         Stream.of(entry.getKey().getAdjacentsCorners())
+         Stream.of(landSide.getAdjacentsSides()).map(adjacentsLandSide -> this.borders.get(adjacentsLandSide))
+               .forEach(adjacentBorder -> border.adjacentBorders.add(adjacentBorder));
+
+         // link [start-end] border
+         Border clockwiseBorder = this.borders.get(landSide.getSideClockwise());
+         Border CounterClockwiseBorder = this.borders.get(landSide.getSideCounterClockwise());
+         Set<LandSide> arbitrarySplit = Set.of(LandSide.topRight, LandSide.right, LandSide.bottomRight);
+
+         border.startAdjacentBorders.add(arbitrarySplit.contains(landSide) ? clockwiseBorder : CounterClockwiseBorder);
+         border.endAdjacentBorders.add(arbitrarySplit.contains(landSide) ? CounterClockwiseBorder : clockwiseBorder);
+
+         // border - corner // corner - border
+         Stream.of(landSide.getAdjacentsCorners())
                .map(adjacentLandCorner -> this.corners.get(adjacentLandCorner))
                .forEach(adjacentCorner -> {
-                  if (!entry.getValue().adjacentCorners.contains(adjacentCorner))
-                     entry.getValue().adjacentCorners.add(adjacentCorner);
-                  if (!adjacentCorner.adjacentBorders.contains(entry.getValue()))
-                     adjacentCorner.adjacentBorders.add(entry.getValue());
+                  if (!border.adjacentCorners.contains(adjacentCorner))
+                     border.adjacentCorners.add(adjacentCorner);
+                  if (!adjacentCorner.adjacentBorders.contains(border))
+                     adjacentCorner.adjacentBorders.add(border);
                });
       });
+
       // link corner - corner
       this.corners.entrySet().forEach(entry -> {
          Stream.of(entry.getKey().getAdjacentsCorners()).map(adjacentLandCorner -> this.corners.get(adjacentLandCorner))
@@ -220,13 +232,8 @@ public abstract class Land {
       return this.produce.isPresent();
    }
 
-   public List<Ressources> getRessource() {
-      List<Ressources> res = new ArrayList<Ressources>();
-      if (this.produce.isEmpty() || GameVariables.map.thief.position == this)
-         return res;
-
-      IntStream.range(0, this.number).forEach((__) -> res.add(this.produce.get()));
-      return res;
+   public Optional<Ressources> getRessource() {
+      return this.produce;
    }
 
    @Override

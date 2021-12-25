@@ -13,7 +13,7 @@ import player.plays.PlaceThief;
 import player.plays.Play;
 
 public abstract class Player {
-   public Inventory ressources;
+   final public Inventory ressources = new Inventory();
 
    final List<Building> buildings = new ArrayList<Building>();
    final List<Route> routes = new ArrayList<Route>();

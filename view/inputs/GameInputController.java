@@ -6,6 +6,7 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.Optional;
 
+import globalVariables.GameVariables;
 import util_my.Button;
 import util_my.Pair;
 import util_my.Promise;
@@ -27,7 +28,7 @@ public class GameInputController extends InputController {
 
    @Override
    public void mouseMoved(MouseEvent event) {
-      final List<Pair<Button, Promise<Image>>> buttons = gameScene.getButtons(this.view.getContentSize());
+      final var buttons = gameScene.getButtons(this.view.getContentSize());
 
       this.gameInterfaceJob.overedButton = buttons.stream()
             .filter(pair -> !pair.getKey().disabled && pair.getKey().shape.contains(event.getPoint()))
@@ -44,7 +45,7 @@ public class GameInputController extends InputController {
 
    @Override
    public void mouseClicked(MouseEvent event) {
-      final List<Pair<Button, Promise<Image>>> buttons = gameScene.getButtons(this.view.getContentSize());
+      final var buttons = gameScene.getButtons(this.view.getContentSize());
 
       Optional<Button> clickedButton = buttons.stream()
             .filter(pair -> !pair.getKey().disabled && pair.getKey().shape.contains(event.getPoint()))
@@ -56,12 +57,31 @@ public class GameInputController extends InputController {
                this.gameScene.buildScene.disable();
             else
                this.gameScene.buildScene.enable();
+
+            view.backgroundPainting.forceUpdatePainting().await();
+            view.background.repaint();
             break;
          case "DICES":
             new Timeout(() -> {
                this.gameInterfaceJob.overedButton = Optional.empty();
+               this.gameScene.setDicesLunched(true);
+               this.gameInterfaceJob.setAllDisabled(true);
+
                this.gameScene.dicesScene.enable();
+
+               this.gameInterfaceJob.setAllDisabled(false);
+               if (view.backgroundPainting.updatePainting().await())
+                  view.background.repaint();
             });
+            break;
+         case "DONE":
+            this.gameScene.newTurn();
+            GameVariables.map.getRouteLength().get(0).map((size, player) -> {
+               System.out.println(size);
+            });
+            if (view.backgroundPainting.updatePainting().await())
+               view.background.repaint();
+            break;
          default:
             break;
       }
