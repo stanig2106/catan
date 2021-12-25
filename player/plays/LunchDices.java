@@ -5,9 +5,11 @@ import map.constructions.City​​;
 import player.Player;
 
 public class LunchDices extends Play {
-   final int dicesResult = (int) Math.random() * 6 + (int) Math.random() * 6 + 2;
+   public final int firstDice = (int) (Math.random() * 6) + 1;
+   public final int secondDice = (int) (Math.random() * 6) + 1;
+   public final int dicesResult = firstDice + secondDice;
 
-   LunchDices(Player player) {
+   public LunchDices(Player player) {
       super(player);
    }
 

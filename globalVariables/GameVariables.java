@@ -3,8 +3,8 @@ package globalVariables;
 import map.CatanMap;
 import player.Player;
 import view.View;
-import view.scenes.GameScene;
 import view.scenes.StartMenuScene;
+import view.scenes.GameScene.GameScene;
 
 public abstract class GameVariables {
    public static CatanMap map;
@@ -17,4 +17,5 @@ public abstract class GameVariables {
 
    public static boolean console = false;
    public static Player[] players;
+   public static Player playerToPlay;
 }

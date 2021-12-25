@@ -4,8 +4,8 @@ import player.Player;
 import util_my.Promise;
 import view.Scene;
 import view.View;
-import view.scenes.GameScene;
 import view.scenes.StartMenuScene;
+import view.scenes.GameScene.GameScene;
 
 /**
  * Catan
@@ -21,6 +21,7 @@ public class Game {
          GameVariables.map = new CatanMap();
          final Player player = new Player.RealPlayer();
          GameVariables.players = new Player[] { player };
+         GameVariables.playerToPlay = player;
          resolve.accept(null);
       });
       System.out.println("viewLoading...");

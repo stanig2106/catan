@@ -2,9 +2,11 @@ package view.inputs;
 
 import java.awt.*;
 import view.View;
+import view.painting.jobs.CatanMapJob;
 import view.painting.jobs.gameInterface.GameInterfaceJob;
 
 import java.awt.event.*;
+import java.util.Optional;
 
 import util_my.Timeout;
 
