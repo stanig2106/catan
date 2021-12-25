@@ -24,12 +24,12 @@ import view.painting.jobs.CatanMapJob;
 public class CatanMap extends HexagonalGrids<Land> {
    public final static Promise<Image> backgroundImage = ViewVariables.importImage("assets/Background.png");
 
-   final Thief thief;
+   public final Robber robber;
 
    public CatanMap() {
       super(Config.mapRadius);
       initRandomLand();
-      this.thief = new Thief(
+      this.robber = new Robber(
             this.getAll().stream().filter((land) -> {
                return (land instanceof Desert);
             }).findFirst().orElse(this.get(new Coord(0, 0))));
@@ -46,7 +46,7 @@ public class CatanMap extends HexagonalGrids<Land> {
       });
       this.linkAllLand();
 
-      this.thief = new Thief(
+      this.robber = new Robber(
             this.getAll().stream().filter((land) -> {
                return (land instanceof Desert);
             }).findFirst().orElse(this.get(new Coord(0, 0))));

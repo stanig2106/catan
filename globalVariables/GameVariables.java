@@ -1,9 +1,11 @@
 package globalVariables;
 
 import java.util.LinkedList;
+import java.util.stream.Stream;
 
 import map.CatanMap;
 import player.Player;
+import player.Player.Me;
 import player.developmentCards.Card;
 import view.View;
 import view.scenes.StartMenuScene;
@@ -21,6 +23,10 @@ public abstract class GameVariables {
    public static boolean console = false;
    public static Player[] players;
    public static Player playerToPlay;
+
+   public static Player.Me getMe() {
+      return (Me) Stream.of(players).filter(player -> (player instanceof Player.Me)).findFirst().get();
+   }
 
    public static int turn;
 

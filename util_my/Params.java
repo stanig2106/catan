@@ -1,6 +1,8 @@
 package util_my;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -42,6 +44,10 @@ public class Params {
 
    public Optional<String> get(String key) {
       return getAll(key).findFirst();
+   }
+
+   public Params without(String... keys) {
+      return new Params(stream().filter(param -> !Set.of(keys).contains(param.getKey())).toArray(Param[]::new));
    }
 
    @Override

@@ -4,12 +4,12 @@ import map.Land;
 import player.Player;
 
 /**
- * PlaceThief
+ * PlaceRobber
  */
-public class PlaceThief extends Play {
+public class PlaceRobber extends Play {
    final Land landToPlace;
 
-   PlaceThief(Player player, Land land) {
+   PlaceRobber(Player player, Land land) {
       super(player);
       this.landToPlace = land;
    }

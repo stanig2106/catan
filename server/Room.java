@@ -1,6 +1,7 @@
 package server;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -11,6 +12,7 @@ import java.util.stream.Stream;
 import map.CatanMap;
 import player.Player;
 import player.Player.Server;
+import player.developmentCards.Card;
 
 class Room {
    final String name;
@@ -21,6 +23,7 @@ class Room {
    Player.Server playerToPlay;
    private boolean started = false;
    public int turn = -2;
+   public final LinkedList<Card> poolCards = Card.newPoolCards();
 
    Room(String name) {
       this.name = ServerVariables.secureString(name, 10);
@@ -70,6 +73,8 @@ class Room {
    public void setOwner(Server owner) {
       this.owner = owner;
       this.playerToPlay = owner;
+      this.owner.freeColony++;
+      this.owner.freeRoute++;
    }
 
    public boolean isOwner(Server player) {

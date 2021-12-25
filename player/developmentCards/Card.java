@@ -5,9 +5,13 @@ import java.util.LinkedList;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import map.ressources.Cost;
+
 // enum was an error of design, now is to late...
 public enum Card {
    Knight, Library, Monopoly, YearOfPlenty, RoadBuilding;
+
+   public static Cost cost = new Cost(0, 1, 0, 1, 1);
 
    @Override
    public String toString() {
@@ -88,4 +92,11 @@ public enum Card {
       return res;
    }
 
+   public String toWeb() {
+      return this.ordinal() + "";
+   }
+
+   public static Card fromWeb(String s) {
+      return Card.values()[Integer.parseInt(s)];
+   }
 }

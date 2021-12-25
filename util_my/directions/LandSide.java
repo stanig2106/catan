@@ -134,4 +134,11 @@ public enum LandSide {
       return new LandCorner[] { this.getCornerClockwise(), this.getCornerCounterClockwise() };
    }
 
+   public String toWeb() {
+      return this.ordinal() + "";
+   }
+
+   public static LandSide fromWeb(String s) {
+      return LandSide.values()[Integer.parseInt(s)];
+   }
 }

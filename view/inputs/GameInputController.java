@@ -1,26 +1,30 @@
 package view.inputs;
 
-import java.awt.Cursor;
 import java.awt.*;
-import java.awt.Image;
 import java.awt.event.MouseEvent;
+import java.awt.image.ImageObserver;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
 import globalVariables.GameVariables;
+import globalVariables.ViewVariables;
 import online.Online;
 import player.Player;
 import player.developmentCards.Card;
 import player.plays.PlayCard;
 import util_my.Box;
 import util_my.Button;
+import util_my.DrawUtils;
 import util_my.Pair;
 import util_my.Promise;
+import util_my.StreamUtils;
 import util_my.Timeout;
 import view.View;
 import view.View.ListenerSave;
+import view.painting.Painting.PaintingJob;
 import view.painting.jobs.gameInterface.GameInterfaceJob;
+import view.painting.jobs.gameInterface.MenuJob;
 import view.scenes.GameScene.GameScene;
 
 public class GameInputController extends InputController {
@@ -68,6 +72,26 @@ public class GameInputController extends InputController {
       if (GameVariables.playerToPlay instanceof Player.Me
             && GameVariables.playerToPlay.inventory.cards.get(index).getValue()) {
          this.gameInterfaceJob.setCardDragged(true);
+         view.foregroundPainting.updatePainting(240, 190, new PaintingJob() {
+
+            @Override
+            public void paint(Graphics2D g, Dimension dim, ImageObserver imageObserver) {
+               g.drawImage(MenuJob.ParchemineTexture.await(), 0, 0, 240, 190, imageObserver);
+               final Card card = GameVariables.playerToPlay.inventory.cards.get(index).getKey();
+               g.setFont(ViewVariables.GameFont.deriveFont(26f));
+               g.setColor(Color.black);
+               DrawUtils.drawCenteredString(g, card.getTitle(),
+                     new Rectangle(0, 2, 240, 40));
+               g.setFont(ViewVariables.SerialFont.deriveFont(20f));
+               StreamUtils.StreamIndexed(card.getDescription()).forEach(pair -> pair.map((i, line) -> {
+                  DrawUtils.drawCenteredString(g, line,
+                        new Rectangle(0, 2 + i * 25 + 50, 240,
+                              20));
+               }));
+            }
+
+         }).await();
+         view.foreground.repaint();
          if (view.backgroundPainting.updatePainting().await())
             view.background.repaint();
          this.save = Optional.of(view.new ListenerSave());
@@ -80,7 +104,7 @@ public class GameInputController extends InputController {
    @Override
    public void mouseDragged(MouseEvent event) {
       if (this.gameInterfaceJob.isCardDragged()) {
-         view.foreground.setBounds(event.getPoint().x, event.getPoint().y, 50, 50);
+         view.foreground.setBounds(event.getPoint().x - 120, event.getPoint().y - 95, 240, 190);
       }
    }
 
@@ -94,8 +118,9 @@ public class GameInputController extends InputController {
       if (this.gameInterfaceJob.isCardDragged()) {
          this.gameInterfaceJob.setIndexOfOveredCard(-1);
          this.gameInterfaceJob.setCardDragged(false);
+         view.foreground.setBounds(0, 0, 0, 0);
          if (event.getPoint().y < view.getContentSize().height - 250)
-            new PlayCard(GameVariables.playerToPlay, index).execute();
+            Online.playCard(index);
       }
 
    }
@@ -120,6 +145,9 @@ public class GameInputController extends InputController {
             break;
          case "DICES":
             Online.lunchDices();
+            break;
+         case "CARD":
+            Online.buyCard();
             break;
          case "DONE":
             Online.done();

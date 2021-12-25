@@ -14,6 +14,7 @@ import map.constructions.Building;
 import map.constructions.City;
 import map.constructions.Colony;
 import map.constructions.Route;
+import online.Online;
 import player.Inventory.NOT_ENOUGH_RESSOURCES;
 import player.plays.Build;
 import view.View;
@@ -139,41 +140,19 @@ public class BuildInputController extends InputController {
                                  .equals(building))
                            .orElse(false)))
             return;
-         try {
-            GameVariables.map.get(summary.nearestLandCoord.get()).setRoute(summary.nearestLandSide.get(),
-                  new Route(GameVariables.playerToPlay));
-            if (GameVariables.turn < 0)
-               this.buildScene.disable();
-         } catch (final BUILD e) {
-            return;
-         }
+         Online.buildRoute(summary.nearestLandCoord.get(), summary.nearestLandSide.get());
+
          view.backgroundPainting.forceUpdatePainting().await();
          view.background.repaint();
 
       } else if (summary.nearestLandCorner.isPresent()
             && (this.modes.contains(Modes.city) || this.modes.contains(Modes.colony))) {
          this.catanMapJob.removeShadow();
-         try {
-            new Build.BuildCity(GameVariables.playerToPlay, GameVariables.map.get(summary.nearestLandCoord.get()),
-                  summary.nearestLandCorner.get()).execute();
-         } catch (final CITY_WITHOUT_COLONY _e) {
-            try {
-               new Build.BuildColony(GameVariables.playerToPlay, GameVariables.map.get(summary.nearestLandCoord.get()),
-                     summary.nearestLandCorner.get()).execute();
-               if (GameVariables.turn < 0)
-                  this.modes = Set.of(Modes.route);
-            } catch (final BUILD __e) {
-               return;
-            } catch (NOT_ENOUGH_RESSOURCES e) {
-               System.out.println("pas assez de ressource");
-            }
-         } catch (final BUILD | NOT_ENOUGH_RESSOURCES e) {
-            if (!(e instanceof NOT_ENOUGH_RESSOURCES)
-                  && !Stream.of(e.getSuppressed())
-                        .anyMatch(suppressed -> (suppressed instanceof NOT_ENOUGH_RESSOURCES)))
-               return;
-            System.out.println("pas assez de ressource");
-         }
+         if (GameVariables.map.get(summary.nearestLandCoord.get()).getBuilding(summary.nearestLandCorner.get())
+               .isEmpty())
+            Online.buildColony(summary.nearestLandCoord.get(), summary.nearestLandCorner.get());
+         else
+            Online.buildCity(summary.nearestLandCoord.get(), summary.nearestLandCorner.get());
 
          view.backgroundPainting.forceUpdatePainting().await();
          view.background.repaint();

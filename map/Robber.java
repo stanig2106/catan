@@ -1,11 +1,9 @@
 package map;
 
-
-
-public class Thief {
+public class Robber {
    public Land position;
 
-   Thief(Land position) {
+   Robber(Land position) {
       this.position = position;
    }
 }

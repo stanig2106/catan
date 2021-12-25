@@ -1,20 +1,24 @@
 package view.painting.jobs.gameInterface;
 
+import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Dimension;
+import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Stroke;
 import java.awt.image.ImageObserver;
-import java.awt.*;
-import java.util.List;
+import java.util.LinkedList;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import globalVariables.GameVariables;
 import globalVariables.ViewVariables;
-import map.CatanMap;
 import map.ressources.Ressources;
 import player.Player;
 import player.developmentCards.Card;
@@ -24,7 +28,6 @@ import util_my.DrawUtils;
 import util_my.Pair;
 import util_my.Promise;
 import util_my.StreamUtils;
-import util_my.Pair.Triple;
 import view.painting.Painting.PaintingJob;
 import view.scenes.GameScene.GameScene;
 
@@ -43,6 +46,8 @@ public class GameInterfaceJob extends PaintingJob {
    boolean allDisabled = false;
 
    public boolean manualReload = false;
+
+   public Optional<Pair<Integer, Integer>> lastDice = Optional.empty();
 
    public GameInterfaceJob(GameScene gameScene) {
       this.gameScene = gameScene;
@@ -79,6 +84,11 @@ public class GameInterfaceJob extends PaintingJob {
       new RessourcesInterfaceJob().paint(g, dim, imageObserver);
 
       new PlayersInterfaceJob().paint(g, dim, imageObserver);
+
+      this.lastDice.ifPresent(dices -> dices.map((dice1, dice2) -> {
+         g.drawImage(DicesJob.facesImage.get(dice1).await(), dim.width - 46, 10, 36, 36, imageObserver);
+         g.drawImage(DicesJob.facesImage.get(dice2).await(), dim.width - 46 * 2, 10, 36, 36, imageObserver);
+      }));
    }
 
    @Override
@@ -205,7 +215,8 @@ class PlayersInterfaceJob extends PaintingJob {
             new Property(40 * i++, PlayersInterfaceJob.swordImage.await(), 12, 0),
             new Property(40 * i++, PlayersInterfaceJob.pathImage.await(), 17, "-"),
             new Property(40 * i++, PlayersInterfaceJob.ressourceCardImage.await(), 17, player.inventory.getTotal()),
-            new Property(40 * i++, PlayersInterfaceJob.developmentCardImage.await(), 17, player.inventory.cards.size()),
+            new Property(40 * i++, PlayersInterfaceJob.developmentCardImage.await(), 17,
+                  player.inventory.getCardsCount()),
             new Property(40 * i++, PlayersInterfaceJob.trophyImage.await(), 25, player.getPublicScore())).forEach(p -> {
                DrawUtils.drawCenteredString(g, p.value,
                      new Rectangle(position.x + 5 + p.xOffset, position.y + 40, 40, 40));
@@ -232,7 +243,7 @@ class CardInterfaceJob extends PaintingJob {
 
    @Override
    public void paint(Graphics2D g, Dimension dim, ImageObserver imageObserver) {
-      final var cards = GameVariables.playerToPlay.inventory.cards;
+      final var cards = new LinkedList<>(GameVariables.getMe().inventory.cards);
       Box<Double> xOffset = Box.of((cards.size() % 2) / 2.);
       xOffset.value -= (cards.size() - (cards.size() % 2 == 0 ? 1 : 0)) / 2.;
       Box<Double> xOffsetOfOveredCard = Box.of(-1.0);
@@ -316,12 +327,13 @@ class RessourcesInterfaceJob extends PaintingJob {
    public void paint(Graphics2D g, Dimension dim, ImageObserver imageObserver) {
       final GradientPaint gp = new GradientPaint(0f, (float) (dim.getHeight() - 80), new Color(22, 27, 34),
             0,
-            (float) dim.getHeight(), new Color(142, 17, 3));
+            (float) dim.getHeight(),
+            /* new Color(142, 17, 3) */ GameVariables.getMe().color.getColor().darker().darker());
       g.setPaint(gp);
-      g.fillRect(0, (int) (dim.getHeight() - 60), (int) dim.getWidth(), 60);
+      g.fillRect(0, (int) (dim.getHeight() - 65), (int) dim.getWidth(), 65);
 
       g.setColor(new Color(22, 27, 34));
-      g.fillRect(0, (int) (dim.getHeight() - 70), (int) dim.getWidth(), 10);
+      g.fillRect(0, (int) (dim.getHeight() - 70), (int) dim.getWidth(), 5);
       int i = -2;
       final int offset = 100;
       Stream.of(
@@ -331,7 +343,7 @@ class RessourcesInterfaceJob extends PaintingJob {
             Pair.of(i++ * offset, Ressources.Wheat),
             Pair.of(i++ * offset, Ressources.Ore)).forEach(pair -> pair.map((xOffset, ressource) -> {
                g.setFont(ViewVariables.GameFont.deriveFont(30f));
-               DrawUtils.drawCenteredString(g, "" + GameVariables.playerToPlay.inventory.getCount(ressource),
+               DrawUtils.drawCenteredString(g, "" + GameVariables.getMe().inventory.getCount(ressource),
                      new Rectangle(new Point((int) (dim.getWidth() / 2. + xOffset - 40), (int) dim.getHeight() - 60),
                            new Dimension(40, 60)));
                DrawUtils.drawCenteredImage(g, ressource.getImage().await(), 40, 40,

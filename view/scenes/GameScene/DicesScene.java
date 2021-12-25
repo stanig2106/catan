@@ -4,7 +4,6 @@ import java.util.stream.IntStream;
 
 import globalVariables.GameVariables;
 import player.Player;
-import player.plays.LunchDices;
 import util_my.Timeout;
 import view.Scene;
 import view.View;
@@ -19,11 +18,11 @@ public class DicesScene extends Scene {
    }
 
    public void enable(int dice1, int dice2) {
-      ListenerSave backupListener = this.view.new ListenerSave();
+      final ListenerSave backupListener = this.view.new ListenerSave();
       this.preEnable();
 
       final DicesJob dicesJob = new DicesJob();
-      PaintingJob backupJobs = view.backgroundPainting.getJobs();
+      final PaintingJob backupJobs = view.backgroundPainting.getJobs();
 
       view.backgroundPainting.addJobs(dicesJob).await();
       view.background.repaint();

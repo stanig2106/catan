@@ -15,6 +15,10 @@ public class Inventory extends RessourceCount {
       super();
    }
 
+   public int getCardsCount() {
+      return cards.size();
+   }
+
    public void pay(Cost cost) throws NOT_ENOUGH_RESSOURCES {
       if (!hasEnough(cost))
          throw new NOT_ENOUGH_RESSOURCES();

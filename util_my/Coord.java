@@ -26,11 +26,12 @@ public class Coord {
    }
 
    public String toWeb() {
-      return "[" + x + "," + y + "]";
+      return x + "E" + y;
    }
 
    public static Coord fromWeb(String s) {
-      String[] coord = s.split("[")[1].split("]")[0].split(",");
+      String[] coord = s.split("E");
+
       return new Coord(Integer.parseInt(coord[0]), Integer.parseInt(coord[1]));
    }
 }

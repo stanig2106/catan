@@ -29,14 +29,13 @@ public class GameScene extends Scene {
    public final BuildScene buildScene = new BuildScene(this.view, this, this.catanMapJob);
    public final DicesScene dicesScene = new DicesScene(this.view);
 
-   public GameScene(
-         View view) {
+   public GameScene(View view) {
       super(view);
    }
 
    public void enable() {
       this.preEnable();
-      Online.waitPlays().await();
+      Online.watchPlays().await();
       view.backgroundPainting.updatePainting(new AndJob(this.catanMapJob, gameInterfaceJob))
             .await();
       view.background.repaint();
@@ -55,27 +54,54 @@ public class GameScene extends Scene {
 
    public List<Pair<Button, Optional<Promise<Image>>>> getButtons(Dimension dim) {
       final Button dicesButton = new Button("DICES", 65, 65, Button.Position.end, Button.Position.middle,
-            -10, -80, dim,
+            -10, -160, dim,
             "Lunch dices");
       dicesButton.disabled = this.gameInterfaceJob.isAllDisabled() || this.getDicesLunched() || GameVariables.turn < 0
             || !(GameVariables.playerToPlay instanceof Player.Me);
+
+      //
+
       final Button buildButton = new Button("BUILD", 65, 65, Button.Position.end, Button.Position.middle,
-            -10, 0, dim,
+            -10, -80, dim,
             "Build");
       buildButton.disabled = this.gameInterfaceJob.isAllDisabled() || !this.getDicesLunched() || GameVariables.turn < 0
             || !(GameVariables.playerToPlay instanceof Player.Me);
-      final Button doneButton = new Button("DONE", 65, 65, Button.Position.end, Button.Position.middle,
+
+      //
+
+      final Button cardButton = new Button("CARD", 65, 65, Button.Position.end, Button.Position.middle,
+            -10, 0, dim,
+            "Card");
+      cardButton.disabled = this.gameInterfaceJob.isAllDisabled() || !this.getDicesLunched() || GameVariables.turn < 0
+      // || !GameVariables.playerToPlay.canBuyCard()
+      // TODO: uncomment
+      ;
+
+      //
+
+      final Button tradeButton = new Button("TRADE", 65, 65, Button.Position.end, Button.Position.middle,
             -10, 80, dim,
+            "Trade");
+      tradeButton.disabled = this.gameInterfaceJob.isAllDisabled() || !this.getDicesLunched() || GameVariables.turn < 0;
+
+      //
+
+      final Button doneButton = new Button("DONE", 65, 65, Button.Position.end, Button.Position.middle,
+            -10, 160, dim,
             "Done");
       doneButton.disabled = this.gameInterfaceJob.isAllDisabled() || !this.getDicesLunched()
             || (GameVariables.turn == -2 && GameVariables.playerToPlay.routes.size() < 1)
             || (GameVariables.turn == -1 && GameVariables.playerToPlay.routes.size() < 2)
             || !(GameVariables.playerToPlay instanceof Player.Me);
 
+      //
+
       return List.of(
             Pair.of(dicesButton, Optional.of(GameInterfaceJob.dicesImage)),
             Pair.of(buildButton,
                   Optional.of(buildScene.enabled ? GameInterfaceJob.cancelImage : GameInterfaceJob.buildImage)),
+            Pair.of(cardButton, Optional.empty()),
+            Pair.of(tradeButton, Optional.empty()),
             Pair.of(doneButton, Optional.empty()));
    }
 
@@ -93,15 +119,11 @@ public class GameScene extends Scene {
       this.buildScene.disable();
 
       if (!(GameVariables.playerToPlay instanceof Player.Me)) {
-         Online.waitPlays();
+         Online.watchPlays();
          return;
       }
 
-      GameVariables.playerToPlay.updateCards();
-
       if (GameVariables.turn < 0) {
-         GameVariables.playerToPlay.freeColony++;
-         GameVariables.playerToPlay.freeRoute++;
          this.setDicesLunched(true);
          this.buildScene.inputController.modes = Set.of(BuildInputController.Modes.colony);
          this.buildScene.enable();
@@ -109,5 +131,24 @@ public class GameScene extends Scene {
          this.setDicesLunched(false);
       }
 
+   }
+
+   private boolean roadBuildingMode = false;
+
+   public void enableRoadBuildingMode() {
+      this.roadBuildingMode = true;
+      this.gameInterfaceJob.setAllDisabled(true);
+      this.buildScene.inputController.modes = Set.of(BuildInputController.Modes.route);
+      this.buildScene.enable();
+   }
+
+   public void disableRoadBuildingMode() {
+      this.roadBuildingMode = false;
+      this.gameInterfaceJob.setAllDisabled(false);
+      this.buildScene.disable();
+   }
+
+   public boolean isRoadBuildingMode() {
+      return roadBuildingMode;
    }
 }

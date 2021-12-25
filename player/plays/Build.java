@@ -5,7 +5,9 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import config.Config;
 import globalVariables.GameVariables;
+import map.CatanMap;
 import map.Land;
 import map.Land.BUILD;
 import map.Land.BUILD.ROUTE_ON_ROUTE;
@@ -42,7 +44,7 @@ public abstract class Build<T extends Construction> extends Play {
       return T_new.apply(this.player);
    };
 
-   protected abstract void build() throws ROUTE_ON_ROUTE, BUILD;
+   public abstract void build() throws ROUTE_ON_ROUTE, BUILD;
 
    protected abstract void throwIfCanNotBuild() throws BUILD;
 
@@ -63,14 +65,17 @@ public abstract class Build<T extends Construction> extends Play {
       this.pay();
 
       this.build();
+   }
 
+   public void forceExecute() throws ROUTE_ON_ROUTE, BUILD {
+      this.build();
    }
 
    public static class BuildRoute extends Build<Route> {
       Land position;
       LandSide positionSide;
 
-      BuildRoute(Player player, Land position, LandSide positionSide) {
+      public BuildRoute(Player player, Land position, LandSide positionSide) {
          super(player, Route.cost, Route::new);
 
          this.position = position;
@@ -78,8 +83,13 @@ public abstract class Build<T extends Construction> extends Play {
       }
 
       @Override
-      protected void build() throws BUILD {
+      public void build() throws BUILD {
          this.position.setRoute(this.positionSide, this.getConstruction());
+      }
+
+      @Override
+      protected boolean canPay() {
+         return this.player.freeRoute > 0 || super.canPay();
       }
 
       @Override
@@ -121,9 +131,8 @@ public abstract class Build<T extends Construction> extends Play {
       }
 
       @Override
-      protected void build() throws BUILD {
+      public void build() throws BUILD {
          this.position.setBuilding(positionCorner, this.getConstruction());
-
       }
 
       @Override
@@ -135,18 +144,57 @@ public abstract class Build<T extends Construction> extends Play {
       public void execute() throws NOT_ENOUGH_RESSOURCES, BUILD {
          super.execute();
 
-         if (GameVariables.turn == -1) {
-            this.position.getRessource().ifPresent(ressource -> GameVariables.playerToPlay.inventory.add(ressource));
-            Stream.of(this.positionCorner.getAdjacentsLandSides())
-                  .map(landSide -> {
-                     try {
-                        return GameVariables.map.get(landSide.offsetCoord(this.position.coord));
-                     } catch (InvalidCoordinate _e) {
-                        return null;
-                     }
-                  }).filter(Objects::nonNull).forEach(land -> land.getRessource()
-                        .ifPresent(ressource -> GameVariables.playerToPlay.inventory.add(ressource)));
+         if (Config.serverMode == true) {
+            throw new Error("server mode !");
          }
+
+         if (GameVariables.turn != -1)
+            return;
+         this.position.getRessource().ifPresent(ressource -> this.player.inventory.add(ressource));
+         Stream.of(this.positionCorner.getAdjacentsLandSides())
+               .map(landSide -> {
+                  try {
+                     return GameVariables.map.get(landSide.offsetCoord(this.position.coord));
+                  } catch (InvalidCoordinate _e) {
+                     return null;
+                  }
+               }).filter(Objects::nonNull).forEach(land -> land.getRessource()
+                     .ifPresent(ressource -> this.player.inventory.add(ressource)));
+
+      }
+
+      @Override
+      public void forceExecute() throws ROUTE_ON_ROUTE, BUILD {
+         super.forceExecute();
+         if (GameVariables.turn != -1)
+            return;
+         this.position.getRessource().ifPresent(ressource -> this.player.inventory.add(ressource));
+         Stream.of(this.positionCorner.getAdjacentsLandSides())
+               .map(landSide -> {
+                  try {
+                     return GameVariables.map.get(landSide.offsetCoord(this.position.coord));
+                  } catch (InvalidCoordinate _e) {
+                     return null;
+                  }
+               }).filter(Objects::nonNull).forEach(land -> land.getRessource()
+                     .ifPresent(ressource -> this.player.inventory.add(ressource)));
+      }
+
+      public void serverExecute(int turn, CatanMap map) throws NOT_ENOUGH_RESSOURCES, BUILD {
+         super.execute();
+         if (turn != -1)
+            return;
+         this.position.getRessource().ifPresent(ressource -> this.player.inventory.add(ressource));
+         Stream.of(this.positionCorner.getAdjacentsLandSides())
+               .map(landSide -> {
+                  try {
+                     return map.get(landSide.offsetCoord(this.position.coord));
+                  } catch (InvalidCoordinate _e) {
+                     return null;
+                  }
+               }).filter(Objects::nonNull).forEach(land -> land.getRessource()
+                     .ifPresent(ressource -> this.player.inventory.add(ressource)));
+
       }
    }
 
@@ -162,7 +210,7 @@ public abstract class Build<T extends Construction> extends Play {
       }
 
       @Override
-      protected void build() throws BUILD {
+      public void build() throws BUILD {
          this.position.setBuilding(positionCorner, this.getConstruction());
       }
 

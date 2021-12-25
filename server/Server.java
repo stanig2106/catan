@@ -22,10 +22,17 @@ public class Server {
       server.createContext("/started", new StartedHandler());
       server.createContext("/map", new MapHandler());
 
+      // infos
+      server.createContext("/ressources", new RessourcesHandler());
+      server.createContext("/cardsCount", new CardsCountHandler());
+
       // plays
       server.createContext("/wait", new WaitHandler());
 
       server.createContext("/dices", new DicesHandler());
+      server.createContext("/buyCard", new BuyCardHandler());
+      server.createContext("/playCard", new PlayCardHandler());
+      server.createContext("/build", new BuildHandler());
       server.createContext("/done", new DoneHandler());
 
       server.createContext("/", new E404Handler());

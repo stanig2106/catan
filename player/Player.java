@@ -17,12 +17,16 @@ import map.constructions.Building;
 import map.constructions.City;
 import map.constructions.Route;
 import map.ressources.Cost;
+import online.Online;
+import online.Request;
 import player.Inventory.NOT_ENOUGH_RESSOURCES;
 import player.developmentCards.Card;
 import util_my.Pair;
+import util_my.Param;
+import util_my.Params;
 
 public abstract class Player {
-   public final Inventory inventory = new Inventory();
+   public Inventory inventory = new Inventory();
 
    public final LinkedList<Building> buildings = new LinkedList<Building>();
    public final LinkedList<Route> routes = new LinkedList<Route>();
@@ -43,6 +47,10 @@ public abstract class Player {
       this.color = PlayerColors.values()[id];
    }
 
+   public boolean canBuyCard() {
+      return this.haveEnough(Card.cost);
+   }
+
    public boolean haveEnough(Cost cost) {
       return this.inventory.hasEnough(cost);
    }
@@ -55,8 +63,8 @@ public abstract class Player {
       return name;
    }
 
-   public void drawCard() {
-      this.inventory.cards.add(Pair.of(GameVariables.poolCards.pop(), false));
+   public void addCard(Card card) {
+      this.inventory.cards.add(Pair.of(card, false));
    }
 
    public void updateCards() {
@@ -105,6 +113,21 @@ public abstract class Player {
 
       public Online(String name, int id) {
          super(name, id);
+         player.Player.Online me = this;
+         this.inventory = new Inventory() {
+            public int getTotal() {
+               String res = new Request(online.Online.url + "/ressources", new Param("id", "" + me.id),
+                     new Param("room", online.Online.joinedRoom.get().uuid.toString())).send().await();
+               return Integer.parseInt(Params.parse(res).get("count").get());
+            };
+
+            @Override
+            public int getCardsCount() {
+               String res = new Request(online.Online.url + "/cardsCount", new Param("id", "" + me.id),
+                     new Param("room", online.Online.joinedRoom.get().uuid.toString())).send().await();
+               return Integer.parseInt(Params.parse(res).get("count").get());
+            }
+         };
       }
 
    }

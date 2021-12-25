@@ -2,16 +2,22 @@ package online;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import globalVariables.GameVariables;
 import map.CatanMap;
-import online.onlinePlays.Dices;
-import online.onlinePlays.Done;
+import online.onlinePlays.OBuild;
+import online.onlinePlays.ODices;
+import online.onlinePlays.ODone;
+import online.onlinePlays.OPlayCard;
+import player.developmentCards.Card;
 import util_my.Coord;
 import util_my.Param;
 import util_my.Params;
 import util_my.Promise;
 import util_my.Timeout;
+import util_my.directions.LandCorner;
+import util_my.directions.LandSide;
 
 public final class Online {
    public static String url = "http://localhost:8080";
@@ -24,8 +30,12 @@ public final class Online {
    private Online() {
    }
 
-   private static boolean notLogged() {
-      return personalUuid.isEmpty() || joinedRoomUuid.isEmpty();
+   private static boolean notLogged(Consumer<Exception> reject) {
+      if (personalUuid.isEmpty() || joinedRoomUuid.isEmpty()) {
+         reject.accept(new Exception("not logged"));
+         return true;
+      }
+      return false;
    }
 
    public static Promise<Void> downloadRooms() {
@@ -147,10 +157,8 @@ public final class Online {
 
    public static Promise<Void> waitGameStarted() {
       return new Promise<Void>((resolve, reject) -> {
-         if (notLogged()) {
-            reject.accept(new Exception("not logged"));
+         if (notLogged(reject))
             return;
-         }
          Params resParams = new Params(new Param("wait"));
          while (resParams.contain("wait")) {
             Online.updateRoomJoined();
@@ -174,10 +182,8 @@ public final class Online {
 
    public static Promise<Void> lunchDices() {
       return new Promise<Void>((resolve, reject) -> {
-         if (notLogged()) {
-            reject.accept(new Exception("not logged"));
+         if (notLogged(reject))
             return;
-         }
 
          final String res = new Request(url + "/dices",
                new Param("sender", personalUuid.get().toString()),
@@ -191,7 +197,7 @@ public final class Online {
             return;
          }
 
-         Dices.exec(Integer.parseInt(resParams.get("dice1").get()),
+         ODices.exec(Integer.parseInt(resParams.get("dice1").get()),
                Integer.parseInt(resParams.get("dice2").get()));
          resolve.accept(null);
       });
@@ -199,10 +205,8 @@ public final class Online {
 
    public static Promise<Void> done() {
       return new Promise<Void>((resolve, reject) -> {
-         if (notLogged()) {
-            reject.accept(new Exception("not logged"));
+         if (notLogged(reject))
             return;
-         }
 
          final String res = new Request(url + "/done",
                new Param("sender", personalUuid.get().toString()),
@@ -216,19 +220,17 @@ public final class Online {
             return;
          }
 
-         Done.exec(Integer.parseInt(resParams.get("newTurn").get()),
+         ODone.exec(Integer.parseInt(resParams.get("newTurn").get()),
                Integer.parseInt(resParams.get("player").get()));
          resolve.accept(null);
       });
    }
 
-   public static Promise<Void> waitPlays() {
+   public static Promise<Void> watchPlays() {
 
       return new Promise<Void>((resolve, reject) -> {
-         if (notLogged()) {
-            reject.accept(new Exception("not logged"));
+         if (notLogged(reject))
             return;
-         }
          Params resParams = new Params(new Param("wait"));
          while (!resParams.contain("newTurn")) {
             new Timeout(1000).join();
@@ -239,47 +241,109 @@ public final class Online {
                         .await();
 
             resParams = Params.parse(res);
+            if (!res.equals("wait"))
+               System.out.println("watched : " + res);
 
             if (resParams.get("error").isPresent()) {
                reject.accept(new Exception(resParams.get("error").get()));
                return;
             }
 
-            if (resParams.contain("dices1")) {
-               Dices.exec(Integer.parseInt(resParams.get("dice1").get()),
+            if (resParams.contain("dice1"))
+               ODices.exec(Integer.parseInt(resParams.get("dice1").get()),
                      Integer.parseInt(resParams.get("dice2").get()));
-               resolve.accept(null);
-               return;
-            }
+
+            if (resParams.contain("buildType"))
+               OBuild.exec(resParams.get("buildType").get(), Coord.fromWeb(resParams.get("coord").get()),
+                     resParams.get("position").get());
          }
 
-         System.out.println("new turn ! " + resParams.get("newTurn").get());
-
-         Done.exec(Integer.parseInt(resParams.get("newTurn").get()),
+         ODone.exec(Integer.parseInt(resParams.get("newTurn").get()),
                Integer.parseInt(resParams.get("player").get()));
 
          resolve.accept(null);
       });
    }
 
-   public static Promise<Void> sendBuild(String type, Coord coord, String cornerOrBorder) {
+   public static Promise<Void> buildRoute(Coord coord, LandSide side) {
+      return build("route", coord, side.toWeb());
+   }
+
+   public static Promise<Void> buildColony(Coord coord, LandCorner corner) {
+      return build("colony", coord, corner.toWeb());
+   }
+
+   public static Promise<Void> buildCity(Coord coord, LandCorner corner) {
+      return build("city", coord, corner.toWeb());
+   }
+
+   private static Promise<Void> build(String type, Coord coord, String cornerOrSide) {
       return new Promise<Void>((resolve, reject) -> {
-         if (personalUuid.isEmpty()) {
-            reject.accept(new Exception("not logged"));
+         if (notLogged(reject))
             return;
-         }
+
+         OBuild.exec(type, coord, cornerOrSide);
+
          String res = new Request(url + "/build",
                new Param("sender", personalUuid.get().toString()),
-               new Param("type", type),
+               new Param("room", joinedRoomUuid.get().toString()),
+               new Param("buildType", type),
                new Param("coord", coord.toWeb()),
-               new Param("position", cornerOrBorder)).send()
+               new Param("position", cornerOrSide)).send()
                      .await();
          Params resParams = Params.parse(res);
+         System.out.println(res);
 
          if (resParams.get("error").isPresent()) {
             reject.accept(new Exception(resParams.get("error").get()));
             return;
          }
+
+      });
+   }
+
+   public static Promise<Void> buyCard() {
+      return new Promise<Void>((resolve, reject) -> {
+         if (notLogged(reject))
+            return;
+
+         final String res = new Request(url + "/buyCard",
+               new Param("sender", personalUuid.get().toString()),
+               new Param("room", joinedRoomUuid.get().toString())).send()
+                     .await();
+
+         final Params resParams = Params.parse(res);
+
+         if (resParams.get("error").isPresent()) {
+            reject.accept(new Exception(resParams.get("error").get()));
+            return;
+         }
+
+         GameVariables.playerToPlay.addCard(Card.fromWeb(resParams.get("card").get()));
+         resolve.accept(null);
+      });
+   }
+
+   public static Promise<Void> playCard(int indexOfCard) {
+      return new Promise<Void>((resolve, reject) -> {
+         if (notLogged(reject))
+            return;
+
+         final String res = new Request(url + "/playCard",
+               new Param("sender", personalUuid.get().toString()),
+               new Param("room", joinedRoomUuid.get().toString()),
+               new Param("index", "" + indexOfCard)).send()
+                     .await();
+
+         final Params resParams = Params.parse(res);
+
+         if (resParams.get("error").isPresent()) {
+            reject.accept(new Exception(resParams.get("error").get()));
+            return;
+         }
+
+         OPlayCard.selfExec(indexOfCard);
+         resolve.accept(null);
       });
    }
 
