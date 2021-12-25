@@ -15,9 +15,12 @@ import view.painting.Painting.PaintingJob;
 public abstract class MenuJob extends PaintingJob {
    public static final Promise<Image> ParchemineTexture = ViewVariables
          .importImage("assets/menu/ParchemineTexture.png").work();
-   public static final Promise<Image> woodTexture = ViewVariables.importImage("assets/menu/WoodTexture.jpg").work();
-   public static final Promise<Image> woodTextureLight = ViewVariables.importImage("assets/menu/WoodTextureLight.jpg")
-         .work();
+   public static final Promise<Image> woodTexture = ViewVariables
+         .importImage("assets/menu/WoodTexture.jpg").work();
+   public static final Promise<Image> woodTextureLight = ViewVariables
+         .importImage("assets/menu/WoodTextureLight.jpg").work();
+   public static final Promise<Image> woodTextureDark = ViewVariables
+         .importImage("assets/menu/WoodTextureDark.jpg");
 
    final double pourcentage;
 

@@ -6,6 +6,7 @@ public class Button {
    public final Rectangle shape;
    public final String content;
    public final String id;
+   public boolean disabled = false;
 
    public Button(String id, Rectangle shape, String content) {
       this.shape = shape;

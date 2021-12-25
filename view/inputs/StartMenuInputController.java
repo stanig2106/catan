@@ -26,8 +26,10 @@ public class StartMenuInputController extends InputController {
    private final Function<Dimension, Button[]> buttonsGetter;
    Button[] buttons;
 
+   final View view;
+
    public StartMenuInputController(View view, Function<Dimension, Button[]> buttonsGetter) {
-      super(view);
+      this.view = view;
       this.buttonsGetter = buttonsGetter;
       this.buttons = buttonsGetter.apply(view.getContentSize());
    }

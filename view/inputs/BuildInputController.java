@@ -32,10 +32,13 @@ import view.painting.jobs.OneRouteJob;
 public class BuildInputController extends InputController {
    final BuildInputController me = this;
    public Player player;
+   final View view;
 
    public BuildInputController(final View view, Player player) {
-      super(view);
+      this.view = view;
       this.player = player;
+
+      this.oldLandSize = view.getLandSize();
    }
 
    private void displayRoute(final Coord coord, final LandSide landSide) {
@@ -168,7 +171,7 @@ public class BuildInputController extends InputController {
       this.mouseMoved(event);
    }
 
-   int oldLandSize = view.getLandSize();
+   int oldLandSize;
 
    @Override
    public void mouseWheelMoved(final MouseWheelEvent event) {

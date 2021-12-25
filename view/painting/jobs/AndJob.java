@@ -10,9 +10,9 @@ import view.painting.Painting.PaintingJob;
 public class AndJob extends PaintingJob {
    final PaintingJob[] jobs;
 
-   public AndJob(PaintingJob... jobs) {
-      this.jobs = jobs;
-   }
+   // public AndJob(PaintingJob... jobs) {
+   // this.jobs = jobs;
+   // }
 
    public AndJob(PaintingJob job, PaintingJob... jobs) {
       this.jobs = Stream.concat(Stream.of(job), Stream.of(jobs)).toArray(PaintingJob[]::new);
