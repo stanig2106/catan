@@ -5,10 +5,11 @@ import java.util.List;
 
 import map.ressources.Cost;
 import player.developmentCards.Card;
+import util_my.Pair;
 import util_my.RessourceCount;
 
 public class Inventory extends RessourceCount {
-   public final List<Card> cards = new ArrayList<Card>();
+   public List<Pair<Card, Boolean>> cards = new ArrayList<Pair<Card, Boolean>>();
 
    Inventory() {
       super();

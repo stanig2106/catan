@@ -46,7 +46,7 @@ public class BuildInputController extends InputController {
    @Override
    public void mouseDragged(MouseEvent event) {
       if (!mouseDragOrigineSafe || !view.inSafeZone(event.getPoint())) {
-         this.view.foreground.setBounds(0, 0, 0, 0);
+         // this.view.foreground.setBounds(0, 0, 0, 0);
          return;
       }
 
@@ -60,7 +60,6 @@ public class BuildInputController extends InputController {
 
    @Override
    public void mouseMoved(final MouseEvent event) {
-
       if (!view.inSafeZone(event.getPoint())) {
          oldSummary = Optional.empty();
          this.catanMapJob.removeShadow();

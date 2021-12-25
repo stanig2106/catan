@@ -10,12 +10,14 @@ import java.util.stream.IntStream;
 
 import globalVariables.GameVariables;
 import player.developmentCards.Card;
+import player.plays.PlayCard;
 import util_my.Box;
 import util_my.Button;
 import util_my.Pair;
 import util_my.Promise;
 import util_my.Timeout;
 import view.View;
+import view.View.ListenerSave;
 import view.painting.jobs.gameInterface.GameInterfaceJob;
 import view.scenes.GameScene.GameScene;
 
@@ -43,10 +45,56 @@ public class GameInputController extends InputController {
       else
          this.view.content.setCursor(Cursor.getDefaultCursor());
 
-      this.gameInterfaceJob.setIndexOfOveredCard(indexOfOveredCard(event.getPoint()));
+      if (!this.gameInterfaceJob.getCardDragged())
+         this.gameInterfaceJob.setIndexOfOveredCard(indexOfOveredCard(event.getPoint()));
 
       if (this.view.backgroundPainting.updatePainting().await())
          this.view.background.repaint();
+
+   }
+
+   Point oldPosition = null;
+   private boolean dragDisponible = true;
+   Optional<ListenerSave> save = Optional.empty();
+
+   @Override
+   public void mousePressed(MouseEvent event) {
+      final int index;
+      if ((index = this.gameInterfaceJob.getIndexOfOveredCard()) == -1)
+         return;
+      if (GameVariables.playerToPlay.inventory.cards.get(index).getValue()) {
+         this.gameInterfaceJob.setCardDragged(true);
+         if (view.backgroundPainting.updatePainting().await())
+            view.background.repaint();
+         System.out.println("save");
+         this.save = Optional.of(view.new ListenerSave());
+         view.removeAllListener();
+         view.content.addMouseListener(this);
+         view.content.addMouseMotionListener(this);
+      }
+   }
+
+   @Override
+   public void mouseDragged(MouseEvent event) {
+      if (this.gameInterfaceJob.getCardDragged()) {
+         view.foreground.setBounds(event.getPoint().x, event.getPoint().y, 50, 50);
+      }
+   }
+
+   @Override
+   public void mouseReleased(MouseEvent event) {
+      this.save.ifPresent(save -> save.restore());
+      this.save = Optional.empty();
+      System.out.println("restore");
+      final int index;
+      if ((index = this.gameInterfaceJob.getIndexOfOveredCard()) == -1)
+         return;
+      if (this.gameInterfaceJob.getCardDragged()) {
+         this.gameInterfaceJob.setIndexOfOveredCard(-1);
+         this.gameInterfaceJob.setCardDragged(false);
+         if (event.getPoint().y < view.getContentSize().height - 250)
+            new PlayCard(GameVariables.playerToPlay, index).execute();
+      }
 
    }
 
@@ -95,7 +143,9 @@ public class GameInputController extends InputController {
       final int cardsSize = GameVariables.playerToPlay.inventory.cards.size();
       if (cardsSize == 0)
          return -1;
-      if (position.y < view.getContentSize().height - 70 - 40 || position.y > view.getContentSize().height - 70) {
+      if (position.y < view.getContentSize().height - 70 - 40
+            - (this.gameInterfaceJob.getIndexOfOveredCard() != -1 ? 50 : 0)
+            || position.y > view.getContentSize().height - 70) {
          return -1;
       }
       Box<Double> xOffset = Box.of((cardsSize % 2) / 2.);

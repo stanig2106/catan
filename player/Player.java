@@ -3,12 +3,19 @@ package player;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import globalVariables.GameVariables;
+
 import java.awt.*;
 
 import map.constructions.Building;
+import map.constructions.City​​;
 import map.constructions.Route;
 import map.ressources.Cost;
 import player.Inventory.NOT_ENOUGH_RESSOURCES;
+import player.developmentCards.Card;
+import util_my.Pair;
 
 public abstract class Player {
    public final Inventory inventory = new Inventory();
@@ -40,6 +47,25 @@ public abstract class Player {
 
    public String getName() {
       return name;
+   }
+
+   public void drawCard() {
+      this.inventory.cards.add(Pair.of(GameVariables.poolCards.pop(), false));
+   }
+
+   public void updateCards() {
+      this.inventory.cards = this.inventory.cards.stream()
+            .map(pair -> pair.mapValue((card, playable) -> card != Card.Library))
+            .collect(Collectors.toList());
+   }
+
+   public int getPublicScore() {
+      return buildings.stream().mapToInt(building -> (building instanceof City​​ ? 2 : 1)).sum();
+   }
+
+   public int getScore() {
+      return this.getPublicScore()
+            + (int) this.inventory.cards.stream().filter(card -> card.getKey().equals(Card.Library)).count();
    }
 
    public static class RealPlayer extends Player {
@@ -78,4 +104,5 @@ public abstract class Player {
          }
       }
    }
+
 }

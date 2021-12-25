@@ -3,8 +3,6 @@ package view.scenes.GameScene;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 import globalVariables.GameVariables;
 
@@ -18,15 +16,14 @@ import view.View;
 import view.inputs.BuildInputController;
 import view.inputs.CatanMapInputController;
 import view.inputs.GameInputController;
-import view.painting.Painting.PaintingJob;
 import view.painting.jobs.AndJob;
 import view.painting.jobs.CatanMapJob;
-import view.painting.jobs.LoadingJob;
 import view.painting.jobs.gameInterface.GameInterfaceJob;
 
 public class GameScene extends Scene {
    final CatanMapJob catanMapJob = new CatanMapJob(this.view);
-   final GameInterfaceJob gameInterfaceJob = new GameInterfaceJob(this);
+   public final GameInterfaceJob gameInterfaceJob = new GameInterfaceJob(this);
+
    public final BuildScene buildScene = new BuildScene(this.view, this, this.catanMapJob);
    public final DicesScene dicesScene = new DicesScene(this.view);
 
@@ -95,6 +92,7 @@ public class GameScene extends Scene {
    public void newTurn() {
       GameVariables.nextPlayer();
       this.buildScene.disable();
+      GameVariables.playerToPlay.updateCards();
       if (GameVariables.turn < 0) {
          GameVariables.playerToPlay.freeColony++;
          GameVariables.playerToPlay.freeRoute++;

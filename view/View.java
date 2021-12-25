@@ -100,6 +100,7 @@ public class View extends JFrame {
       }
 
       public void restore() {
+         me.removeAllListener();
          Stream.of(this.getKey().getA()).forEach(me::addComponentListener);
          Stream.of(this.getKey().getB()).forEach(me.content::addMouseListener);
          Stream.of(this.getKey().getC()).forEach(me.content::addMouseMotionListener);
@@ -231,7 +232,8 @@ public class View extends JFrame {
       if (position.x < 230 && position.y < 520. / 4. * GameVariables.players.length)
          return false;
       if (position.y > this.getContentSize().getHeight() - 70
-            - (GameVariables.playerToPlay.inventory.cards.size() > 0 ? 40 : 0))
+            - (GameVariables.playerToPlay.inventory.cards.size() > 0 ? 40 : 0)
+            - (GameVariables.scenes.gameScene.gameInterfaceJob.getIndexOfOveredCard() != -1 ? 50 : 0))
          return false;
       if (position.x > this.getContentSize().getWidth() - 80)
          return false;

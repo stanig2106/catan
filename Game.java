@@ -34,11 +34,11 @@ public class Game {
       GameVariables.scenes.gameScene = new GameScene(GameVariables.view);
       GameVariables.scenes.startMenuScene.enable();
       System.out.println("done");
-      GameVariables.playerToPlay.inventory.cards.add(GameVariables.poolCards.pop());
-      GameVariables.playerToPlay.inventory.cards.add(GameVariables.poolCards.pop());
-      GameVariables.playerToPlay.inventory.cards.add(GameVariables.poolCards.pop());
-      GameVariables.playerToPlay.inventory.cards.add(GameVariables.poolCards.pop());
-      GameVariables.playerToPlay.inventory.cards.add(GameVariables.poolCards.pop());
+      GameVariables.playerToPlay.drawCard();
+      GameVariables.playerToPlay.drawCard();
+      GameVariables.playerToPlay.drawCard();
+      GameVariables.playerToPlay.drawCard();
+      GameVariables.playerToPlay.drawCard();
       // GameVariables.playerToPlay.inventory.cards.add(GameVariables.poolCards.pop());
    }
 

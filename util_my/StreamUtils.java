@@ -14,4 +14,9 @@ public final class StreamUtils {
       return of.stream().map(e -> Pair.of(i.value++, e));
    }
 
+   public static <T> Stream<Pair<Integer, T>> StreamIndexed(Stream<T> of) {
+      Box<Integer> i = Box.of(0);
+      return of.map(e -> Pair.of(i.value++, e));
+   }
+
 }

@@ -38,6 +38,7 @@ public class GameInterfaceJob extends PaintingJob {
    final GameScene gameScene;
 
    protected int indexOfOveredCard = -1;// -1 for no overedCard
+   protected boolean cardDragged = false;
 
    boolean allDisabled = false;
 
@@ -75,7 +76,7 @@ public class GameInterfaceJob extends PaintingJob {
       }));
 
       if (GameVariables.playerToPlay instanceof Player.RealPlayer) {
-         new CardInterfaceJob(indexOfOveredCard).paint(g, dim, imageObserver);
+         new CardInterfaceJob(indexOfOveredCard, cardDragged).paint(g, dim, imageObserver);
          new RessourcesInterfaceJob().paint(g, dim, imageObserver);
       }
       new PlayersInterfaceJob().paint(g, dim, imageObserver);
@@ -100,6 +101,19 @@ public class GameInterfaceJob extends PaintingJob {
       if (this.indexOfOveredCard != index)
          this.manualReload = true;
       this.indexOfOveredCard = index;
+   }
+
+   public int getIndexOfOveredCard() {
+      return indexOfOveredCard;
+   }
+
+   public void setCardDragged(boolean cardDragged) {
+      this.manualReload = true;
+      this.cardDragged = cardDragged;
+   }
+
+   public boolean getCardDragged() {
+      return this.cardDragged;
    }
 
 }
@@ -179,15 +193,15 @@ class PlayersInterfaceJob extends PaintingJob {
          }
       }
 
-      int i = 0;
       g.setFont(ViewVariables.GameFont.deriveFont(24f));
       g.setColor(Color.white);
+      int i = 0;
       Stream.of(
             new Property(40 * i++, PlayersInterfaceJob.swordImage.await(), 12, 0),
             new Property(40 * i++, PlayersInterfaceJob.pathImage.await(), 17, "-"),
             new Property(40 * i++, PlayersInterfaceJob.ressourceCardImage.await(), 17, player.inventory.getTotal()),
-            new Property(40 * i++, PlayersInterfaceJob.developmentCardImage.await(), 17, 0),
-            new Property(40 * i++, PlayersInterfaceJob.trophyImage.await(), 25, 0)).forEach(p -> {
+            new Property(40 * i++, PlayersInterfaceJob.developmentCardImage.await(), 17, player.inventory.cards.size()),
+            new Property(40 * i++, PlayersInterfaceJob.trophyImage.await(), 25, player.getPublicScore())).forEach(p -> {
                DrawUtils.drawCenteredString(g, p.value,
                      new Rectangle(position.x + 5 + p.xOffset, position.y + 40, 40, 40));
                DrawUtils.drawCenteredImage(g, p.image, p.width, 24,
@@ -204,45 +218,89 @@ class PlayersInterfaceJob extends PaintingJob {
 
 class CardInterfaceJob extends PaintingJob {
    final int indexOfOveredCard; // -1 for no overedCard
+   final boolean cardDragged;
 
-   CardInterfaceJob(int indexOfOveredCard) {
+   CardInterfaceJob(int indexOfOveredCard, boolean cardDragged) {
       this.indexOfOveredCard = indexOfOveredCard;
+      this.cardDragged = cardDragged;
    }
 
    @Override
    public void paint(Graphics2D g, Dimension dim, ImageObserver imageObserver) {
-      final List<Card> cards = GameVariables.playerToPlay.inventory.cards;
+      final var cards = GameVariables.playerToPlay.inventory.cards;
       Box<Double> xOffset = Box.of((cards.size() % 2) / 2.);
       xOffset.value -= (cards.size() - (cards.size() % 2 == 0 ? 1 : 0)) / 2.;
+      Box<Double> xOffsetOfOveredCard = Box.of(-1.0);
       StreamUtils.StreamIndexed(cards).forEach(pair -> pair.map((i, card) -> {
-         if (i == this.indexOfOveredCard)
-            paintCard(Optional.empty(), xOffset.value++, g, dim, imageObserver);
-         else
-            paintCard(Optional.of(card), xOffset.value++, g, dim, imageObserver);
+         if (i == this.indexOfOveredCard) {
+            xOffsetOfOveredCard.value = xOffset.value;
+            paintCard(Optional.empty(), xOffset.value++, g, dim, imageObserver, false);
+         } else
+            paintCard(Optional.of(card.getKey()), xOffset.value++, g, dim, imageObserver, card.getValue());
       }));
+
+      if (indexOfOveredCard != -1 && !cardDragged)
+         paintFullCard(cards.get(indexOfOveredCard).getKey(), xOffsetOfOveredCard.value, g, dim, imageObserver,
+               cards.get(indexOfOveredCard).getValue());
    }
 
    private void paintCard(Optional<Card> card, double xOffset, Graphics2D g, Dimension dim,
-         ImageObserver imageObserver) {
+         ImageObserver imageObserver, boolean playable) {
       final Composite defaultComposite = g.getComposite();
-      g.setColor(card.isEmpty() ? Color.gray : Color.red);
-      if (card.isEmpty())
+      if (card.isEmpty()) {
+         g.setColor(Color.gray);
          g.setComposite(AlphaComposite.SrcOver.derive(0.8f));
-      g.fillRect((int) (dim.width / 2. + xOffset * 155) - 75, dim.height - 70 - 40, 150, 250);
-      g.setComposite(defaultComposite);
+         g.fillRect((int) (dim.width / 2. + xOffset * 155) - 75, dim.height - 70 - 40, 150, 40);
+         g.setComposite(defaultComposite);
+      } else
+         g.drawImage(MenuJob.ParchemineTexture.await(), (int) (dim.width / 2. + xOffset * 155) - 75,
+               dim.height - 70 - 40, 150, 40, imageObserver);
+
+      if (playable) {
+         final Stroke defaultStroke = g.getStroke();
+         g.setStroke(new BasicStroke(4));
+         g.setComposite(AlphaComposite.SrcOver.derive(0.5f));
+         g.setColor(Color.green);
+         g.drawRect((int) (dim.width / 2. + xOffset * 155) - 75, dim.height - 70 - 40, 150, 50);
+         g.setStroke(defaultStroke);
+         g.setComposite(defaultComposite);
+      }
 
       if (card.isEmpty())
          return;
 
       g.setFont(ViewVariables.GameFont.deriveFont(20f));
-      g.setColor(Color.white);
+      g.setColor(Color.black);
       DrawUtils.drawCenteredString(g, card.get().getTitle(),
             new Rectangle((int) (dim.width / 2. + xOffset * 155 - 75), dim.height - 70 - 40 + 2, 150, 40));
 
    }
 
-   private void paintFullCard(Graphics2D g, Dimension dim, ImageObserver imageObserver) {
-
+   private void paintFullCard(Card card, double xOffset, Graphics2D g, Dimension dim,
+         ImageObserver imageObserver, boolean playable) {
+      g.drawImage(MenuJob.ParchemineTexture.await(), (int) (dim.width / 2. + xOffset * 155) - 120,
+            dim.height - 70 - 190, 240, 190, imageObserver);
+      if (playable) {
+         final Composite defaultComposite = g.getComposite();
+         final Stroke defaultStroke = g.getStroke();
+         g.setStroke(new BasicStroke(4));
+         g.setComposite(AlphaComposite.SrcOver.derive(0.5f));
+         g.setColor(Color.green);
+         g.drawRect((int) (int) (dim.width / 2. + xOffset * 155) - 120,
+               dim.height - 70 - 190, 240, 190);
+         g.setStroke(defaultStroke);
+         g.setComposite(defaultComposite);
+      }
+      g.setFont(ViewVariables.GameFont.deriveFont(26f));
+      g.setColor(Color.black);
+      DrawUtils.drawCenteredString(g, card.getTitle(),
+            new Rectangle((int) (dim.width / 2. + xOffset * 155 - 120), dim.height - 70 - 190 + 2, 240, 40));
+      g.setFont(ViewVariables.SerialFont.deriveFont(20f));
+      StreamUtils.StreamIndexed(card.getDescription()).forEach(pair -> pair.map((i, line) -> {
+         DrawUtils.drawCenteredString(g, line,
+               new Rectangle((int) (dim.width / 2. + xOffset * 155 - 120), dim.height - 70 - 190 + 2 + i * 25 + 50, 240,
+                     20));
+      }));
    }
 
 }

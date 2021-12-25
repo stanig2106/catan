@@ -5,10 +5,7 @@ import java.util.LinkedList;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import javax.sound.midi.Instrument;
-
-import globalVariables.GameVariables;
-
+// enum was an error of design, now is to late...
 public enum Card {
    Knight, Library, Monopoly, YearOfPlenty, RoadBuilding;
 
@@ -16,9 +13,11 @@ public enum Card {
    public String toString() {
       switch (this) {
          case Knight:
+            return "Knight";
          case Library:
+            return "Library";
          case Monopoly:
-            return super.toString();
+            return "Monopoly";
          case YearOfPlenty:
             return "Year of plenty";
          case RoadBuilding:
@@ -36,8 +35,8 @@ public enum Card {
       switch (this) {
          case Knight:
             return Stream.of("Move the robber.",
-                  "Steal 1 resource from the",
-                  "owner of a settlement or",
+                  "Steal 1 resource from",
+                  "the owner of a colony or",
                   "city adjacent to the",
                   "robber’s new hex.");
          case Library:
