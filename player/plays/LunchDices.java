@@ -2,7 +2,7 @@ package player.plays;
 
 import globalVariables.GameVariables;
 import map.Land;
-import map.constructions.City​​;
+import map.constructions.City;
 import player.Player;
 
 public class LunchDices extends Play {
@@ -26,7 +26,7 @@ public class LunchDices extends Play {
       GameVariables.map.getAll().stream().filter(land -> land.getNumber() == dicesResult).forEach(land -> {
          land.buildings().forEach(building -> {
             land.getRessource().ifPresent(ressource -> {
-               building.owner.inventory.add(ressource, building instanceof City​​ ? 2 : 1);
+               building.owner.inventory.add(ressource, building instanceof City ? 2 : 1);
             });
          });
       });

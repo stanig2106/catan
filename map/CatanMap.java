@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import java.awt.*;
 import config.Config;
 import globalVariables.ViewVariables;
@@ -33,6 +34,24 @@ public class CatanMap extends HexagonalGrids<Land> {
                return (land instanceof Desert);
             }).findFirst().orElse(this.get(new Coord(0, 0))));
       CatanMapJob.init(this);
+   }
+
+   public CatanMap(Land[] lands) {
+      super(Config.mapRadius);
+
+      Box<Integer> i = Box.of(0);
+      this.forEachCoordinate(c -> {
+         lands[i.value].coord = c;
+         this.set(c, lands[i.value++]);
+      });
+      this.linkAllLand();
+
+      this.thief = new Thief(
+            this.getAll().stream().filter((land) -> {
+               return (land instanceof Desert);
+            }).findFirst().orElse(this.get(new Coord(0, 0))));
+      CatanMapJob.init(this);
+
    }
 
    private void initRandomLand() {
@@ -134,5 +153,13 @@ public class CatanMap extends HexagonalGrids<Land> {
          res.value += "\n";
       });
       return res.value;
+   }
+
+   public String toWeb() {
+      return this.getAll().stream().map(Land::toWeb).collect(Collectors.joining("&"));
+   }
+
+   public static CatanMap fromWeb(String s) {
+      return new CatanMap(Stream.of(s.split("&")).map(Land::fromWeb).toArray(Land[]::new));
    }
 }

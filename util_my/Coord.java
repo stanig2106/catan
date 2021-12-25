@@ -1,7 +1,5 @@
 package util_my;
 
-import Jama.Matrix;
-
 public class Coord {
    public int x;
    public int y;
@@ -25,5 +23,14 @@ public class Coord {
    @Override
    public String toString() {
       return "Coord[" + x + "," + y + "]";
+   }
+
+   public String toWeb() {
+      return "[" + x + "," + y + "]";
+   }
+
+   public static Coord fromWeb(String s) {
+      String[] coord = s.split("[")[1].split("]")[0].split(",");
+      return new Coord(Integer.parseInt(coord[0]), Integer.parseInt(coord[1]));
    }
 }

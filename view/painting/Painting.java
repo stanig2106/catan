@@ -78,7 +78,6 @@ public class Painting {
       this.job = job;
       return new Promise<Boolean>((resolve, reject) -> {
          if (width <= 0 || height <= 0) {
-            System.out.println("dim 0");
             resolve.accept(false);
             return;
          }

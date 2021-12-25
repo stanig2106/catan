@@ -13,7 +13,6 @@ public class TestJob extends PaintingJob {
    @Override
    public void paint(Graphics2D g, Dimension dim, ImageObserver imageObserver) {
       calledTime++;
-      System.out.println("job1 red");
       g.setColor(new Color(255, 0, 0));
       g.fillRect(0, 0, (int) dim.getWidth(), (int) dim.getHeight());
    }

@@ -15,7 +15,4 @@ public abstract class Scene {
       this.view.content.setCursor(Cursor.getDefaultCursor());
    }
 
-   public abstract void enable();
-
-   public abstract void disable();
 }

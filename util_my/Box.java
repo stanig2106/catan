@@ -14,4 +14,5 @@ public class Box<T> {
    public static <T> Box<T> of() {
       return new Box<T>(null);
    }
+
 }

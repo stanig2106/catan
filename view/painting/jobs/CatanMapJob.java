@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import Jama.Matrix;
 import globalVariables.GameVariables;
 import globalVariables.ViewVariables;
 import map.Border;
@@ -25,6 +24,7 @@ import map.constructions.Building;
 
 import map.constructions.Route;
 import util_my.Coord;
+import util_my.Matrix;
 import util_my.Pair.Triple;
 import util_my.directions.LandCorner;
 import util_my.directions.LandSide;

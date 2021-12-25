@@ -27,7 +27,6 @@ public class BuildScene extends Scene {
       inputController = new BuildInputController(view, catanMapJob, this);
    }
 
-   @Override
    public void enable() {
       this.view.addComponentListener(inputController);
       this.view.content.addMouseListener(inputController);
@@ -46,7 +45,6 @@ public class BuildScene extends Scene {
       enabled = true;
    }
 
-   @Override
    public void disable() {
       this.view.removeComponentListener(inputController);
       this.view.content.removeMouseListener(inputController);

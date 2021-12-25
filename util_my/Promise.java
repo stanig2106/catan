@@ -277,7 +277,7 @@ public final class Promise<T> {
    public T awaitOr(final T valueOnReject) {
       try {
          return this._await();
-      } catch (final PromiseRejectedException e) {
+      } catch (final Exception e) {
          return valueOnReject;
       }
    }

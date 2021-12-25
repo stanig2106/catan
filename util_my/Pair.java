@@ -1,5 +1,6 @@
 package util_my;
 
+import java.util.Map.Entry;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
@@ -10,6 +11,14 @@ public class Pair<K, V> implements java.util.Map.Entry<K, V> {
    protected Pair(K key, V value) {
       this.key = key;
       this.value = value;
+   }
+
+   public static <T> Pair<T, T> of(T[] entry) {
+      return new Pair<T, T>(entry.length > 0 ? entry[0] : null, entry.length > 1 ? entry[1] : null);
+   }
+
+   public static <K, V> Pair<K, V> of(Entry<K, V> entry) {
+      return new Pair<K, V>(entry.getKey(), entry.getValue());
    }
 
    public static <K, V> Pair<K, V> of(K key, V value) {
@@ -69,6 +78,11 @@ public class Pair<K, V> implements java.util.Map.Entry<K, V> {
 
    public Pair<V, K> inverse() {
       return Pair.of(value, key);
+   }
+
+   @Override
+   public String toString() {
+      return "{ " + key + " : " + value + " }";
    }
 
    public static class Triple<A, B, C> extends Pair<Pair<A, B>, C> {

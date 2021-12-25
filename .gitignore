@@ -1,3 +1,5 @@
 inspi/
 .vscode/
 *.class
+
+build/

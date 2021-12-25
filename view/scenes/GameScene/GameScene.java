@@ -5,6 +5,8 @@ import java.util.Optional;
 import java.util.Set;
 
 import globalVariables.GameVariables;
+import online.Online;
+import player.Player;
 
 import java.awt.Image;
 import java.awt.*;
@@ -32,10 +34,9 @@ public class GameScene extends Scene {
       super(view);
    }
 
-   @Override
    public void enable() {
       this.preEnable();
-      this.newTurn();
+      Online.waitPlays().await();
       view.backgroundPainting.updatePainting(new AndJob(this.catanMapJob, gameInterfaceJob))
             .await();
       view.background.repaint();
@@ -50,28 +51,27 @@ public class GameScene extends Scene {
       view.content.addMouseListener(gameInputController);
    }
 
-   @Override
-   public void disable() {
-
-   }
-
    private boolean dicesLunched = false;
 
    public List<Pair<Button, Optional<Promise<Image>>>> getButtons(Dimension dim) {
       final Button dicesButton = new Button("DICES", 65, 65, Button.Position.end, Button.Position.middle,
             -10, -80, dim,
             "Lunch dices");
-      dicesButton.disabled = this.gameInterfaceJob.isAllDisabled() || this.getDicesLunched() || GameVariables.turn < 0;
+      dicesButton.disabled = this.gameInterfaceJob.isAllDisabled() || this.getDicesLunched() || GameVariables.turn < 0
+            || !(GameVariables.playerToPlay instanceof Player.Me);
       final Button buildButton = new Button("BUILD", 65, 65, Button.Position.end, Button.Position.middle,
             -10, 0, dim,
             "Build");
-      buildButton.disabled = this.gameInterfaceJob.isAllDisabled() || !this.getDicesLunched() || GameVariables.turn < 0;
+      buildButton.disabled = this.gameInterfaceJob.isAllDisabled() || !this.getDicesLunched() || GameVariables.turn < 0
+            || !(GameVariables.playerToPlay instanceof Player.Me);
       final Button doneButton = new Button("DONE", 65, 65, Button.Position.end, Button.Position.middle,
             -10, 80, dim,
             "Done");
       doneButton.disabled = this.gameInterfaceJob.isAllDisabled() || !this.getDicesLunched()
             || (GameVariables.turn == -2 && GameVariables.playerToPlay.routes.size() < 1)
-            || (GameVariables.turn == -1 && GameVariables.playerToPlay.routes.size() < 2);
+            || (GameVariables.turn == -1 && GameVariables.playerToPlay.routes.size() < 2)
+            || !(GameVariables.playerToPlay instanceof Player.Me);
+
       return List.of(
             Pair.of(dicesButton, Optional.of(GameInterfaceJob.dicesImage)),
             Pair.of(buildButton,
@@ -90,9 +90,15 @@ public class GameScene extends Scene {
    }
 
    public void newTurn() {
-      GameVariables.nextPlayer();
       this.buildScene.disable();
+
+      if (!(GameVariables.playerToPlay instanceof Player.Me)) {
+         Online.waitPlays();
+         return;
+      }
+
       GameVariables.playerToPlay.updateCards();
+
       if (GameVariables.turn < 0) {
          GameVariables.playerToPlay.freeColony++;
          GameVariables.playerToPlay.freeRoute++;
@@ -102,5 +108,6 @@ public class GameScene extends Scene {
       } else {
          this.setDicesLunched(false);
       }
+
    }
 }

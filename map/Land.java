@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 
 import globalVariables.GameVariables;
 import map.constructions.Building;
-import map.constructions.City​​;
+import map.constructions.City;
 import map.constructions.Colony;
 import map.constructions.Route;
 import map.ressources.Ressources;
@@ -28,6 +28,7 @@ import util_my.directions.LandSide;
 import globalVariables.ViewVariables;
 
 import java.awt.*;
+import java.lang.reflect.InvocationTargetException;
 
 public abstract class Land {
    protected int number = -1;
@@ -200,13 +201,13 @@ public abstract class Land {
       if (cornerPosition.adjacentCorners.stream().anyMatch(adjacentCorner -> adjacentCorner.building.isPresent()))
          throw new BUILD.BUILDING_NEAR_BUILDING();
       if (oldBuilding.isEmpty()) {
-         if (newBuilding instanceof City​​)
+         if (newBuilding instanceof City)
             throw new BUILD.CITY_WITHOUT_COLONY();
          return;
       }
       if (oldBuilding.get().owner != newBuilding.owner)
          throw new BUILD.BUILDING_ON_OPPONENT_BUILDING();
-      if (oldBuilding.get() instanceof City​​)
+      if (oldBuilding.get() instanceof City)
          throw new BUILD.BUILDING_ON_CITY();
       if (newBuilding instanceof Colony)
          throw new BUILD.COLONY_ON_COLONY();
@@ -254,6 +255,26 @@ public abstract class Land {
       return "" + this.getClass().getName().charAt(4) + this.number;
    }
 
+   public String toWeb() {
+      return this.getClass().getName() + "=" + this.number;
+   }
+
+   public static Land fromWeb(String s) {
+      final String[] nameAndNumber = s.split("=");
+      final String name = nameAndNumber[0];
+      final int number = Integer.parseInt(nameAndNumber[1]);
+      // todo: thank java for having implemented object destructuring...
+
+      try {
+         Land res = (Land) Class.forName(name).getConstructor().newInstance();
+         if (number != -1)
+            res.setNumber(number);
+         return res;
+      } catch (Exception e) {
+         throw new Error(e);
+      }
+   }
+
    // class Exception
    public abstract static class BUILD extends Exception {
 
@@ -290,7 +311,7 @@ public abstract class Land {
 class Hill extends Land {
    static final Promise<Image> image = ViewVariables.importImage("assets/lands/Hill.png", 2000);
 
-   Hill() {
+   public Hill() {
       super(Optional.of(Ressources.Brick), Hill.image);
    }
 }
@@ -298,7 +319,7 @@ class Hill extends Land {
 class Forest extends Land {
    static final Promise<Image> image = ViewVariables.importImage("assets/lands/Forest.png", 2000);
 
-   Forest() {
+   public Forest() {
       super(Optional.of(Ressources.Lumber), Forest.image);
    }
 
@@ -307,7 +328,7 @@ class Forest extends Land {
 class Mountain extends Land {
    static final Promise<Image> image = ViewVariables.importImage("assets/lands/Mountain.png", 2000);
 
-   Mountain() {
+   public Mountain() {
       super(Optional.of(Ressources.Ore), Mountain.image);
    }
 }
@@ -315,7 +336,7 @@ class Mountain extends Land {
 class Field extends Land {
    static final Promise<Image> image = ViewVariables.importImage("assets/lands/Field.png", 2000);
 
-   Field() {
+   public Field() {
       super(Optional.of(Ressources.Wheat), Field.image);
    }
 }
@@ -323,7 +344,7 @@ class Field extends Land {
 class Pasture extends Land {
    static final Promise<Image> image = ViewVariables.importImage("assets/lands/Pasture.png", 2000);
 
-   Pasture() {
+   public Pasture() {
       super(Optional.of(Ressources.Wool), Pasture.image);
    }
 }
@@ -331,7 +352,7 @@ class Pasture extends Land {
 class Desert extends Land {
    static final Promise<Image> image = ViewVariables.importImage("assets/lands/Desert.png", 2000);
 
-   Desert() {
+   public Desert() {
       super(Optional.empty(), Desert.image);
    }
 }

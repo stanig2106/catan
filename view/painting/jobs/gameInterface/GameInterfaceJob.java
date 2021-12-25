@@ -75,10 +75,9 @@ public class GameInterfaceJob extends PaintingJob {
          g.setComposite(defaultComposite);
       }));
 
-      if (GameVariables.playerToPlay instanceof Player.RealPlayer) {
-         new CardInterfaceJob(indexOfOveredCard, cardDragged).paint(g, dim, imageObserver);
-         new RessourcesInterfaceJob().paint(g, dim, imageObserver);
-      }
+      new CardInterfaceJob(indexOfOveredCard, cardDragged).paint(g, dim, imageObserver);
+      new RessourcesInterfaceJob().paint(g, dim, imageObserver);
+
       new PlayersInterfaceJob().paint(g, dim, imageObserver);
    }
 
@@ -112,7 +111,7 @@ public class GameInterfaceJob extends PaintingJob {
       this.cardDragged = cardDragged;
    }
 
-   public boolean getCardDragged() {
+   public boolean isCardDragged() {
       return this.cardDragged;
    }
 
@@ -121,6 +120,7 @@ public class GameInterfaceJob extends PaintingJob {
 class PlayersInterfaceJob extends PaintingJob {
    public static final Promise<Image> playImage = ViewVariables.importImage("assets/menu/icons/Play.png", 2000);
    public static final Promise<Image> botImage = ViewVariables.importImage("assets/menu/icons/Bot.png", 2000);
+   public static final Promise<Image> onlineImage = ViewVariables.importImage("assets/menu/icons/Bot.png", 2000);
    public static final Promise<Image> swordImage = ViewVariables.importImage("assets/menu/icons/Sword.png", 2000);
    public static final Promise<Image> pathImage = ViewVariables.importImage("assets/menu/icons/Path.png", 2000);
    public static final Promise<Image> ressourceCardImage = ViewVariables
@@ -163,9 +163,14 @@ class PlayersInterfaceJob extends PaintingJob {
       if (player instanceof Player.IA)
          DrawUtils.drawCenteredImage(g, PlayersInterfaceJob.botImage.await(), 24, 27,
                new Rectangle(position.x, position.y + 2, 40, 40), imageObserver);
+      if (player instanceof Player.Online)
+         DrawUtils.drawCenteredImage(g, PlayersInterfaceJob.onlineImage.await(), 24, 27,
+               new Rectangle(position.x, position.y + 2, 40, 40), imageObserver);
+
       DrawUtils.drawVerticalCenteredString(g, player.getName(),
-            new Rectangle(position.x + 4 + (player instanceof Player.IA ? 35 : 0), position.y + 10, 0, 40));
-      if (player == GameVariables.playerToPlay)
+            new Rectangle(position.x + 4 + (player instanceof Player.IA || player instanceof Player.Online ? 35 : 0),
+                  position.y + 10, 0, 40));
+      if (player.id == GameVariables.playerToPlay.id)
          DrawUtils.drawCenteredImage(g, PlayersInterfaceJob.playImage.await(), 35, 24,
                new Rectangle(position.x + 170, position.y + 2, 40, 40), imageObserver);
 

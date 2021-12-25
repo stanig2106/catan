@@ -3,39 +3,49 @@ import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.io.IOException;
+import java.util.Scanner;
+import java.util.stream.Stream;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
-class TestPanel extends JPanel {
+import config.Config;
+import globalVariables.GameVariables;
+import online.Online;
+import server.Server;
+import util_my.Promise;
+import util_my.StreamUtils;
+import view.View;
+import view.scenes.StartMenuScene;
+import view.scenes.GameScene.GameScene;
 
-   @Override
-   protected void paintComponent(Graphics g) {
-      super.paintComponent(g);
-      Graphics2D g2d = (Graphics2D) g;
-      g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-      int w = getWidth();
-      int h = getHeight();
-      Color color1 = Color.RED;
-      Color color2 = Color.GREEN;
-      GradientPaint gp = new GradientPaint(0, 0, color1, 0, h, color2);
-      g2d.setPaint(gp);
-      g2d.fillRect(0, 0, w, h);
-   }
-
+class Test {
    public static void main(String[] args) {
-      SwingUtilities.invokeLater(new Runnable() {
-         @Override
-         public void run() {
-            JFrame frame = new JFrame();
-            TestPanel panel = new TestPanel();
-            frame.add(panel);
-            frame.setSize(200, 200);
-            frame.setLocationRelativeTo(null);
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setVisible(true);
-         }
-      });
+      System.out.println(1.0 % 1);
+   }
+}
+
+class TestGame {
+   public static void main(String[] args) throws IOException {
+      Server.main();
+
+      Online.publicName = "user";
+
+      Online.createRoom("room").await();
+
+      Promise<Void> mapDownload = Online.downloadMap();
+
+      Online.startGame().await();
+
+      Online.updateRoomJoined();
+      mapDownload.await();
+
+      GameVariables.view = new View();
+      GameVariables.scenes.startMenuScene = new StartMenuScene(GameVariables.view);
+      GameVariables.scenes.gameScene = new GameScene(GameVariables.view);
+
+      GameVariables.scenes.startMenuScene.enable();
    }
 }

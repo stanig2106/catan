@@ -28,7 +28,6 @@ public class StartMenuScene extends Scene {
             .toArray(Button[]::new);
    }
 
-   @Override
    public void enable() {
       this.preEnable();
 
@@ -50,10 +49,6 @@ public class StartMenuScene extends Scene {
       this.view.addComponentListener(inputController);
       this.view.content.addMouseListener(inputController);
       this.view.content.addMouseMotionListener(inputController);
-   }
-
-   @Override
-   public void disable() {
    }
 
 }

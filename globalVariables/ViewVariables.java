@@ -10,7 +10,8 @@ import java.awt.Toolkit;
 import java.io.File;
 import java.io.IOException;
 
-import Jama.Matrix;
+import config.Config;
+import util_my.Matrix;
 import util_my.Promise;
 
 public class ViewVariables extends Component {
@@ -34,6 +35,11 @@ public class ViewVariables extends Component {
 
    private Promise<Image> _importImage(String path, long delay) {
       return new Promise<Image>((resolve, reject) -> {
+         if (Config.serverMode) {
+            reject.accept(new Exception("Server mode on"));
+            return;
+         }
+         // System.out.println("import " + path);
          final Image res = Toolkit.getDefaultToolkit().getImage(path);
          final MediaTracker m = new MediaTracker(this);
          m.addImage(res, 1);

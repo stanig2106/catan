@@ -18,12 +18,10 @@ public class DicesScene extends Scene {
       super(view);
    }
 
-   @Override
-   public void enable() {
+   public void enable(int dice1, int dice2) {
       ListenerSave backupListener = this.view.new ListenerSave();
       this.preEnable();
 
-      LunchDices play = new LunchDices(GameVariables.playerToPlay);
       final DicesJob dicesJob = new DicesJob();
       PaintingJob backupJobs = view.backgroundPainting.getJobs();
 
@@ -38,7 +36,7 @@ public class DicesScene extends Scene {
          new Timeout(70).join();
       });
 
-      dicesJob.showResult(play.firstDice, play.secondDice);
+      dicesJob.showResult(dice1, dice2);
       if (view.backgroundPainting.updatePainting().await())
          view.background.repaint();
 
@@ -46,14 +44,9 @@ public class DicesScene extends Scene {
       while (view.jobSave.isPresent())
          new Timeout(500).join();
 
-      play.execute();
       if (view.backgroundPainting.updatePainting(backupJobs).await())
          view.background.repaint();
       backupListener.restore();
-   }
-
-   @Override
-   public void disable() {
    }
 
 }

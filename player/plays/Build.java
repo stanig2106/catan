@@ -9,7 +9,7 @@ import globalVariables.GameVariables;
 import map.Land;
 import map.Land.BUILD;
 import map.Land.BUILD.ROUTE_ON_ROUTE;
-import map.constructions.City​​;
+import map.constructions.City;
 import map.constructions.Colony;
 import map.constructions.Construction;
 import map.constructions.Route;
@@ -150,12 +150,12 @@ public abstract class Build<T extends Construction> extends Play {
       }
    }
 
-   public static class BuildCity extends Build<City​​> {
+   public static class BuildCity extends Build<City> {
       Land position;
       LandCorner positionCorner;
 
       public BuildCity(Player player, Land position, LandCorner positionCorner) {
-         super(player, City​​.cost, City​​::new);
+         super(player, City.cost, City::new);
 
          this.position = position;
          this.positionCorner = positionCorner;

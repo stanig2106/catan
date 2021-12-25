@@ -1,8 +1,12 @@
 package player;
 
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Queue;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import globalVariables.GameVariables;
@@ -10,7 +14,7 @@ import globalVariables.GameVariables;
 import java.awt.*;
 
 import map.constructions.Building;
-import map.constructions.City​​;
+import map.constructions.City;
 import map.constructions.Route;
 import map.ressources.Cost;
 import player.Inventory.NOT_ENOUGH_RESSOURCES;
@@ -26,15 +30,17 @@ public abstract class Player {
    static int playersCount = 0;
 
    public final PlayerColors color;
-   public final int playerNumber = Player.playersCount++;
 
-   protected String name = "Player " + (int) (playerNumber + 1);
+   final protected String name;
 
+   final public int id;
    public int freeRoute = 0;
    public int freeColony = 0;
 
-   Player() {
-      this.color = PlayerColors.values()[playerNumber];
+   Player(String name, int id) {
+      this.name = name;
+      this.id = id;
+      this.color = PlayerColors.values()[id];
    }
 
    public boolean haveEnough(Cost cost) {
@@ -60,7 +66,7 @@ public abstract class Player {
    }
 
    public int getPublicScore() {
-      return buildings.stream().mapToInt(building -> (building instanceof City​​ ? 2 : 1)).sum();
+      return buildings.stream().mapToInt(building -> (building instanceof City ? 2 : 1)).sum();
    }
 
    public int getScore() {
@@ -68,13 +74,46 @@ public abstract class Player {
             + (int) this.inventory.cards.stream().filter(card -> card.getKey().equals(Card.Library)).count();
    }
 
-   public static class RealPlayer extends Player {
-      public void setName(String name) {
-         this.name = name;
+   public static class Me extends Player {
+
+      public Me(String name, int id) {
+         super(name, id);
       }
    }
 
+   public static class Server extends Player {
+      public final UUID uuid = UUID.randomUUID();
+      private final Deque<String> waitedPlays = new LinkedList<String>();
+
+      public Server(String name, int id) {
+         super(name, id);
+      }
+
+      public void addWaitedPlays(String play) {
+         this.waitedPlays.add(play);
+      }
+
+      public Optional<String> popWaitedPlay() {
+         if (this.waitedPlays.isEmpty())
+            return Optional.empty();
+         return Optional.of(this.waitedPlays.removeFirst());
+      }
+
+   }
+
+   public static class Online extends Player {
+
+      public Online(String name, int id) {
+         super(name, id);
+      }
+
+   }
+
    public static class IA extends Player {
+
+      IA(String name, int id) {
+         super(name, id);
+      }
 
    }
 

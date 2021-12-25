@@ -21,18 +21,8 @@ public abstract class GameVariables {
    public static boolean console = false;
    public static Player[] players;
    public static Player playerToPlay;
-   private static int idOfPlayerToPlay = -1;
 
-   public static void nextPlayer() {
-      idOfPlayerToPlay++;
-      if (idOfPlayerToPlay >= players.length) {
-         idOfPlayerToPlay = 0;
-         turn++;
-      }
-      playerToPlay = players[idOfPlayerToPlay];
-   }
-
-   public static int turn = -2;
+   public static int turn;
 
    public static LinkedList<Card> poolCards = Card.newPoolCards();
 }

@@ -3,13 +3,13 @@ package view.inputCalculs;
 import java.awt.*;
 import java.util.Optional;
 
-import Jama.Matrix;
 import globalVariables.GameVariables;
 import globalVariables.ViewVariables;
 import map.CatanMap;
 import util_my.Box;
 import util_my.Coord;
 import util_my.Line;
+import util_my.Matrix;
 import util_my.Pair;
 import util_my.directions.LandCorner;
 import util_my.directions.LandSide;
