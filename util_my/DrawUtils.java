@@ -12,6 +12,13 @@ public abstract class DrawUtils {
       g.drawString(text, x, y);
    }
 
+   public static void drawVerticalCenteredString(Graphics2D g, String text, Rectangle rect) {
+      FontMetrics metrics = g.getFontMetrics(g.getFont());
+      // int x = rect.x + (rect.width - metrics.stringWidth(text)) / 2;
+      int y = rect.y + ((rect.height - metrics.getHeight()) / 2) + metrics.getAscent();
+      g.drawString(text, rect.x, y);
+   }
+
    public static void drawCenteredImage(Graphics2D g, Image image, double width, double height, Rectangle rect,
          ImageObserver imageObserver) {
       double xOffset = (rect.getWidth() - width) / 2. + rect.getX();

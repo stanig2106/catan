@@ -22,6 +22,7 @@ public class ViewVariables extends Component {
 
    static final public Font numberPileFont = ViewVariables.importFont("assets/lands/numberpileReversed.ttf");
    static final public Font GameFont = ViewVariables.importFont("assets/Kelmscot.ttf");
+   static final public Font SerialFont = ViewVariables.importFont("assets/AdobeGaramondProRegular.otf");
 
    public static Promise<Image> importImage(String path, long delay) {
       return instance._importImage(path, delay);

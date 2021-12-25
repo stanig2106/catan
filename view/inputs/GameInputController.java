@@ -76,9 +76,6 @@ public class GameInputController extends InputController {
             break;
          case "DONE":
             this.gameScene.newTurn();
-            GameVariables.map.getRouteLength().get(0).map((size, player) -> {
-               System.out.println(size);
-            });
             if (view.backgroundPainting.updatePainting().await())
                view.background.repaint();
             break;

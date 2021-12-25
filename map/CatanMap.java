@@ -84,6 +84,9 @@ public class CatanMap extends HexagonalGrids<Land> {
    }
 
    public List<Pair<Integer, Player>> getRouteLength() {
+      // TODO: calculate path length
+      if (null == null)
+         throw new Error("NI");
       List<List<Route>> pathsSummary = new ArrayList<List<Route>>();
       this.forEach(land -> {
          land.borders.values().stream().filter(border -> border.route.isPresent())
