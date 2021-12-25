@@ -20,7 +20,10 @@ public class Game {
          System.out.println("mapLoading...");
          GameVariables.map = new CatanMap();
          final Player player = new Player.RealPlayer();
-         GameVariables.players = new Player[] { player };
+         GameVariables.players = new Player[] { player, new Player.IA(),
+               // new Player.RealPlayer(),
+               // new Player.RealPlayer()
+         };
          GameVariables.playerToPlay = player;
          resolve.accept(null);
       });
@@ -31,6 +34,12 @@ public class Game {
       GameVariables.scenes.gameScene = new GameScene(GameVariables.view);
       GameVariables.scenes.startMenuScene.enable();
       System.out.println("done");
+      GameVariables.playerToPlay.inventory.cards.add(GameVariables.poolCards.pop());
+      GameVariables.playerToPlay.inventory.cards.add(GameVariables.poolCards.pop());
+      GameVariables.playerToPlay.inventory.cards.add(GameVariables.poolCards.pop());
+      GameVariables.playerToPlay.inventory.cards.add(GameVariables.poolCards.pop());
+      GameVariables.playerToPlay.inventory.cards.add(GameVariables.poolCards.pop());
+      // GameVariables.playerToPlay.inventory.cards.add(GameVariables.poolCards.pop());
    }
 
 }

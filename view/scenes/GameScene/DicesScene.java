@@ -41,11 +41,14 @@ public class DicesScene extends Scene {
       dicesJob.showResult(play.firstDice, play.secondDice);
       if (view.backgroundPainting.updatePainting().await())
          view.background.repaint();
+
       new Timeout(1000).join();
+      while (view.jobSave.isPresent())
+         new Timeout(500).join();
+
       play.execute();
       if (view.backgroundPainting.updatePainting(backupJobs).await())
          view.background.repaint();
-
       backupListener.restore();
    }
 

@@ -34,7 +34,6 @@ public class ViewVariables extends Component {
 
    private Promise<Image> _importImage(String path, long delay) {
       return new Promise<Image>((resolve, reject) -> {
-         System.out.println("import " + path);
          final Image res = Toolkit.getDefaultToolkit().getImage(path);
          final MediaTracker m = new MediaTracker(this);
          m.addImage(res, 1);

@@ -8,6 +8,7 @@ import view.painting.jobs.gameInterface.GameInterfaceJob;
 import java.awt.event.*;
 import java.util.Optional;
 
+import globalVariables.GameVariables;
 import util_my.Timeout;
 
 public class CatanMapInputController extends InputController {
@@ -45,10 +46,12 @@ public class CatanMapInputController extends InputController {
 
    @Override
    public void mouseWheelMoved(MouseWheelEvent event) {
-      int notches = event.getWheelRotation();
-
       if (!wheelDisponible)
          return;
+      if (!view.inSafeZone(event.getPoint()))
+         return;
+
+      int notches = event.getWheelRotation();
 
       this.zoomCallback(notches < 0, event.getPoint());
 
@@ -72,12 +75,19 @@ public class CatanMapInputController extends InputController {
       this.oldPosition = null;
    }
 
+   @Override
+   public void mousePressed(MouseEvent event) {
+      dragDisponible = view.inSafeZone(event.getPoint());
+   }
+
    Point oldPosition = null;
    private boolean dragDisponible = true;
 
    @Override
    public void mouseDragged(MouseEvent event) {
       if (!dragDisponible)
+         return;
+      if (!view.inSafeZone(event.getPoint()))
          return;
       if (oldPosition == null) {
          this.oldPosition = event.getPoint();

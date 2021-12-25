@@ -2,6 +2,7 @@ package util_my;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.BinaryOperator;
 import java.util.stream.Stream;
 
 import map.ressources.Ressources;
@@ -49,5 +50,14 @@ public abstract class RessourceCount extends HashMap<Ressources, Integer> {
 
    public void add(Ressources ressource, int value) {
       this.replace(ressource, this.get(ressource) + value);
+   }
+
+   public int getTotal() {
+      return this.values().stream().reduce(0, new BinaryOperator<Integer>() {
+         @Override
+         public Integer apply(Integer arg0, Integer arg1) {
+            return arg0 + arg1;
+         }
+      });
    }
 }

@@ -21,6 +21,8 @@ import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.event.*;
 
+import globalVariables.GameVariables;
+import globalVariables.ViewVariables;
 import util_my.Pair;
 import util_my.Timeout;
 import util_my.Pair.Triple;
@@ -200,7 +202,7 @@ public class View extends JFrame {
    //
    // Callback
    //
-   private Optional<Pair<PaintingJob, ListenerSave>> jobSave = Optional.empty();
+   public Optional<Pair<PaintingJob, ListenerSave>> jobSave = Optional.empty();
 
    public void resizeCallback() {
       if (jobSave.isEmpty() && (this.getContentSize().getWidth() < 700 || this.getContentSize().getHeight() < 600)) {
@@ -218,13 +220,23 @@ public class View extends JFrame {
       landSizeCalculator.needRecalculate = true;
       mapCenterCalculator.needRecalculate = true;
       this.background.setSize(this.getContentSize());
-      this.backgroundPainting
-            .updatePainting(this.getContentSize()).await();
+      this.backgroundPainting.updatePainting(this.getContentSize()).await();
    }
 
    public double zoomLevel = 1;
 
    public Point mapOffset = new Point(0, 0);
+
+   public boolean inSafeZone(Point position) {
+      if (position.x < 230 && position.y < 520. / 4. * GameVariables.players.length)
+         return false;
+      if (position.y > this.getContentSize().getHeight() - 70
+            - (GameVariables.playerToPlay.inventory.cards.size() > 0 ? 40 : 0))
+         return false;
+      if (position.x > this.getContentSize().getWidth() - 80)
+         return false;
+      return true;
+   }
 
    //
    //

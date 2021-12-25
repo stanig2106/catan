@@ -1,7 +1,11 @@
 package player.plays;
 
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
+import globalVariables.GameVariables;
 import map.Land;
 import map.Land.BUILD;
 import map.Land.BUILD.ROUTE_ON_ROUTE;
@@ -11,6 +15,8 @@ import map.constructions.Construction;
 import map.constructions.Route;
 import map.ressources.Cost;
 import player.Player;
+import player.Inventory.NOT_ENOUGH_RESSOURCES;
+import util_my.HexagonalGrids.InvalidCoordinate;
 import util_my.directions.LandCorner;
 import util_my.directions.LandSide;
 
@@ -24,80 +30,146 @@ public abstract class Build<T extends Construction> extends Play {
       this.T_new = BuildedConstruction;
    }
 
-   public void pay() throws player.Inventory.NOT_ENOUGH_RESSOURCES {
+   protected boolean canPay() {
+      return this.player.haveEnough(cost);
+   }
+
+   protected void pay() throws NOT_ENOUGH_RESSOURCES {
       this.player.pay(this.cost);
    }
 
-   public T getConstruction() {
+   protected T getConstruction() {
       return T_new.apply(this.player);
    };
 
-   public abstract void setConstruction() throws ROUTE_ON_ROUTE, BUILD;
-}
+   protected abstract void build() throws ROUTE_ON_ROUTE, BUILD;
 
-class BuildRoute extends Build<Route> {
-   Land position;
-   LandSide positionSide;
-
-   BuildRoute(Player player, Land position, LandSide positionSide) {
-      super(player, Route.cost, Route::new);
-
-      this.position = position;
-      this.positionSide = positionSide;
-   }
-
-   public void setConstruction() throws BUILD {
-      this.position.setRoute(this.positionSide, this.getConstruction());
-   }
+   protected abstract void throwIfCanNotBuild() throws BUILD;
 
    @Override
-   public void execute() {
-      // _TODO: Auto-generated method stub
+   public void execute() throws NOT_ENOUGH_RESSOURCES, BUILD {
+      Optional<NOT_ENOUGH_RESSOURCES> payException = Optional.empty();
+      if (!this.canPay())
+         payException = Optional.of(new NOT_ENOUGH_RESSOURCES());
+      try {
+         this.throwIfCanNotBuild();
+      } catch (BUILD e) {
+         payException.ifPresent(e2 -> e.addSuppressed(e2));
+         throw e;
+      }
+      if (payException.isPresent())
+         throw payException.get();
 
-   }
-}
+      this.pay();
 
-class BuildColony extends Build<Colony> {
-   Land position;
-   LandCorner positionCorner;
-
-   BuildColony(Player player, Land position, LandCorner positionCorner) {
-      super(player, Colony.cost, Colony::new);
-
-      this.position = position;
-      this.positionCorner = positionCorner;
-   }
-
-   public void setConstruction() throws BUILD {
-      this.position.setBuilding(positionCorner, this.getConstruction());
+      this.build();
 
    }
 
-   @Override
-   public void execute() {
-      // _TODO: Auto-generated method stub
+   public static class BuildRoute extends Build<Route> {
+      Land position;
+      LandSide positionSide;
 
+      BuildRoute(Player player, Land position, LandSide positionSide) {
+         super(player, Route.cost, Route::new);
+
+         this.position = position;
+         this.positionSide = positionSide;
+      }
+
+      @Override
+      protected void build() throws BUILD {
+         this.position.setRoute(this.positionSide, this.getConstruction());
+      }
+
+      @Override
+      protected void pay() throws NOT_ENOUGH_RESSOURCES {
+         if (this.player.freeRoute > 0)
+            this.player.freeRoute--;
+         else
+            super.pay();
+      }
+
+      @Override
+      protected void throwIfCanNotBuild() throws BUILD {
+         this.position.throwIfCanNotSetRoute(this.positionSide, this.getConstruction());
+      }
    }
-}
 
-class BuildCity extends Build<City​​> {
-   Land position;
-   LandCorner positionCorner;
+   public static class BuildColony extends Build<Colony> {
+      Land position;
+      LandCorner positionCorner;
 
-   BuildCity(Player player, Land position, LandCorner positionCorner) {
-      super(player, City​​.cost, City​​::new);
+      public BuildColony(Player player, Land position, LandCorner positionCorner) {
+         super(player, Colony.cost, Colony::new);
 
-      this.position = position;
-      this.positionCorner = positionCorner;
+         this.position = position;
+         this.positionCorner = positionCorner;
+      }
+
+      @Override
+      protected boolean canPay() {
+         return this.player.freeColony > 0 || super.canPay();
+      }
+
+      @Override
+      protected void pay() throws NOT_ENOUGH_RESSOURCES {
+         if (this.player.freeColony > 0)
+            this.player.freeColony--;
+         else
+            super.pay();
+      }
+
+      @Override
+      protected void build() throws BUILD {
+         this.position.setBuilding(positionCorner, this.getConstruction());
+
+      }
+
+      @Override
+      protected void throwIfCanNotBuild() throws BUILD {
+         this.position.throwIfCanNotSetBuilding(positionCorner, this.getConstruction());
+      }
+
+      @Override
+      public void execute() throws NOT_ENOUGH_RESSOURCES, BUILD {
+         super.execute();
+
+         if (GameVariables.turn == -1) {
+            this.position.getRessource().ifPresent(ressource -> GameVariables.playerToPlay.inventory.add(ressource));
+            Stream.of(this.positionCorner.getAdjacentsLandSides())
+                  .map(landSide -> {
+                     try {
+                        return GameVariables.map.get(landSide.offsetCoord(this.position.coord));
+                     } catch (InvalidCoordinate _e) {
+                        return null;
+                     }
+                  }).filter(Objects::nonNull).forEach(land -> land.getRessource()
+                        .ifPresent(ressource -> GameVariables.playerToPlay.inventory.add(ressource)));
+         }
+      }
    }
 
-   public void setConstruction() throws BUILD {
-      this.position.setBuilding(positionCorner, this.getConstruction());
-   }
+   public static class BuildCity extends Build<City​​> {
+      Land position;
+      LandCorner positionCorner;
 
-   @Override
-   public void execute() {
-      // _TODO: Auto-generated method stub
+      public BuildCity(Player player, Land position, LandCorner positionCorner) {
+         super(player, City​​.cost, City​​::new);
+
+         this.position = position;
+         this.positionCorner = positionCorner;
+      }
+
+      @Override
+      protected void build() throws BUILD {
+         this.position.setBuilding(positionCorner, this.getConstruction());
+      }
+
+      @Override
+      protected void throwIfCanNotBuild() throws BUILD {
+         this.position.throwIfCanNotSetBuilding(positionCorner, this.getConstruction());
+      }
 
    }
 }

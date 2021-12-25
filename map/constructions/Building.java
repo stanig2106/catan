@@ -10,4 +10,9 @@ public abstract class Building extends Construction {
    Building(Player owner, Promise<Image> image) {
       super(owner, image);
    }
+
+   @Override
+   public void addToPlayer() {
+      this.owner.buildings.add(this);
+   }
 }

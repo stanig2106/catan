@@ -27,4 +27,8 @@ public class Route extends Construction {
    public Route(Player owner) {
       super(owner, Route.images.get(owner.color));
    }
+
+   public void addToPlayer() {
+      this.owner.routes.add(this);
+   }
 }

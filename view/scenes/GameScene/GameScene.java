@@ -2,6 +2,7 @@ package view.scenes.GameScene;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -14,6 +15,7 @@ import util_my.Pair;
 import util_my.Promise;
 import view.Scene;
 import view.View;
+import view.inputs.BuildInputController;
 import view.inputs.CatanMapInputController;
 import view.inputs.GameInputController;
 import view.painting.Painting.PaintingJob;
@@ -36,7 +38,7 @@ public class GameScene extends Scene {
    @Override
    public void enable() {
       this.preEnable();
-
+      this.newTurn();
       view.backgroundPainting.updatePainting(new AndJob(this.catanMapJob, gameInterfaceJob))
             .await();
       view.background.repaint();
@@ -62,15 +64,17 @@ public class GameScene extends Scene {
       final Button dicesButton = new Button("DICES", 65, 65, Button.Position.end, Button.Position.middle,
             -10, -80, dim,
             "Lunch dices");
-      dicesButton.disabled = this.gameInterfaceJob.isAllDisabled() || this.getDicesLunched();
+      dicesButton.disabled = this.gameInterfaceJob.isAllDisabled() || this.getDicesLunched() || GameVariables.turn < 0;
       final Button buildButton = new Button("BUILD", 65, 65, Button.Position.end, Button.Position.middle,
             -10, 0, dim,
             "Build");
-      buildButton.disabled = this.gameInterfaceJob.isAllDisabled() || !this.getDicesLunched();
+      buildButton.disabled = this.gameInterfaceJob.isAllDisabled() || !this.getDicesLunched() || GameVariables.turn < 0;
       final Button doneButton = new Button("DONE", 65, 65, Button.Position.end, Button.Position.middle,
             -10, 80, dim,
             "Done");
-      doneButton.disabled = this.gameInterfaceJob.isAllDisabled() || !this.getDicesLunched();
+      doneButton.disabled = this.gameInterfaceJob.isAllDisabled() || !this.getDicesLunched()
+            || (GameVariables.turn == -2 && GameVariables.playerToPlay.routes.size() < 1)
+            || (GameVariables.turn == -1 && GameVariables.playerToPlay.routes.size() < 2);
       return List.of(
             Pair.of(dicesButton, Optional.of(GameInterfaceJob.dicesImage)),
             Pair.of(buildButton,
@@ -89,10 +93,16 @@ public class GameScene extends Scene {
    }
 
    public void newTurn() {
-      this.setDicesLunched(false);
+      GameVariables.nextPlayer();
       this.buildScene.disable();
-      GameVariables.playerToPlay = Stream.of(GameVariables.players)
-            .dropWhile(Predicate.not(GameVariables.playerToPlay::equals)).skip(1)
-            .findFirst().orElse(GameVariables.players[0]);
+      if (GameVariables.turn < 0) {
+         GameVariables.playerToPlay.freeColony++;
+         GameVariables.playerToPlay.freeRoute++;
+         this.setDicesLunched(true);
+         this.buildScene.inputController.modes = Set.of(BuildInputController.Modes.colony);
+         this.buildScene.enable();
+      } else {
+         this.setDicesLunched(false);
+      }
    }
 }

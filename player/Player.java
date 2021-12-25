@@ -1,6 +1,7 @@
 package player;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.awt.*;
 
@@ -8,81 +9,52 @@ import map.constructions.Building;
 import map.constructions.Route;
 import map.ressources.Cost;
 import player.Inventory.NOT_ENOUGH_RESSOURCES;
-import player.plays.Build;
-import player.plays.LunchDices;
-import player.plays.PlaceThief;
-import player.plays.Play;
 
 public abstract class Player {
-   final public Inventory ressources = new Inventory();
+   public final Inventory inventory = new Inventory();
 
-   final List<Building> buildings = new ArrayList<Building>();
-   final List<Route> routes = new ArrayList<Route>();
+   public final LinkedList<Building> buildings = new LinkedList<Building>();
+   public final LinkedList<Route> routes = new LinkedList<Route>();
 
    static int playersCount = 0;
 
    public final PlayerColors color;
    public final int playerNumber = Player.playersCount++;
 
-   public final String name = "hello world";
+   protected String name = "Player " + (int) (playerNumber + 1);
+
+   public int freeRoute = 0;
+   public int freeColony = 0;
 
    Player() {
       this.color = PlayerColors.values()[playerNumber];
    }
 
    public boolean haveEnough(Cost cost) {
-      return this.ressources.hasEnough(cost);
+      return this.inventory.hasEnough(cost);
    }
 
    public void pay(Cost cost) throws NOT_ENOUGH_RESSOURCES {
-      this.ressources.pay(cost);
+      this.inventory.pay(cost);
    }
 
-   abstract public LunchDices askLunchDices();
-
-   abstract public Build<?> askBuild();
-
-   abstract public PlaceThief askPlaceThief();
+   public String getName() {
+      return name;
+   }
 
    public static class RealPlayer extends Player {
-      Play askPlayOnConsole() {
-         throw new Error("NI");
-      }
-
-      @Override
-      public LunchDices askLunchDices() {
-         throw new Error("NI");
-      }
-
-      @Override
-      public Build<?> askBuild() {
-         throw new Error("NI");
-      }
-
-      @Override
-      public PlaceThief askPlaceThief() {
-         throw new Error("NI");
+      public void setName(String name) {
+         this.name = name;
       }
    }
 
    public static class IA extends Player {
 
-      @Override
-      public LunchDices askLunchDices() {
-         throw new Error("NI");
-      }
-
-      @Override
-      public Build<?> askBuild() {
-         throw new Error("NI");
-      }
-
-      @Override
-      public PlaceThief askPlaceThief() {
-         throw new Error("NI");
-      }
-
    }
+
+   //
+
+   //
 
    public static enum PlayerColors {
       blue, green, yellow, purple, red, orange;

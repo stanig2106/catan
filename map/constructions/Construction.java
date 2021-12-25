@@ -13,4 +13,6 @@ public abstract class Construction {
       this.owner = owner;
       this.image = image;
    }
+
+   public abstract void addToPlayer();
 }

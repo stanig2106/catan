@@ -169,9 +169,16 @@ public abstract class Land {
       return true;
    }
 
+   public void throwIfCanNotSetBuilding(LandCorner corner, Building building) throws BUILD {
+      this.trowIfIllegalBuild(this.corners.get(corner).building, building, this.corners.get(corner));
+   }
+
    public void setBuilding(LandCorner corner, Building building) throws BUILD {
       this.trowIfIllegalBuild(this.corners.get(corner).building, building, this.corners.get(corner));
+
+      this.corners.get(corner).building.ifPresent(oldBuilding -> oldBuilding.owner.buildings.remove(oldBuilding));
       this.corners.get(corner).building = Optional.of(building);
+      building.addToPlayer();
    }
 
    public Stream<Building> buildings() {
@@ -213,6 +220,11 @@ public abstract class Land {
       return !this.borders.get(side).route.isPresent();
    }
 
+   public void throwIfCanNotSetRoute(LandSide side, Route route) throws BUILD {
+      System.out.println("TODO: Land::throwIfCanNotSetRoute");
+      // TODO:
+   }
+
    public void setRoute(LandSide side, Route route) throws BUILD {
       if (this.borders.get(side).adjacentBorders.stream().noneMatch(adjacentBorder -> adjacentBorder.route.isPresent())
             && this.borders.get(side).adjacentCorners.stream()
@@ -222,6 +234,7 @@ public abstract class Land {
       if (this.borders.get(side).route.isPresent())
          throw new BUILD.ROUTE_ON_ROUTE();
       this.borders.get(side).route = Optional.of(route);
+      route.addToPlayer();
    }
 
    public Optional<Route> getRoute(LandSide side) {

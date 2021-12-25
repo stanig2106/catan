@@ -10,7 +10,6 @@ import util_my.DrawUtils;
 import view.Scene;
 import view.View;
 import view.inputs.BuildInputController;
-import view.inputs.CatanMapInputController;
 import view.painting.Painting.PaintingJob;
 import view.painting.jobs.CatanMapJob;
 import view.painting.jobs.gameInterface.GameInterfaceJob;
@@ -18,14 +17,14 @@ import view.painting.jobs.gameInterface.MenuJob;
 
 public class BuildScene extends Scene {
    final GameScene gameScene;
-   final BuildInputController inputController;
+   public final BuildInputController inputController;
    public boolean enabled = false;
 
    protected BuildScene(View view, GameScene gameScene, CatanMapJob catanMapJob) {
       super(view);
       this.gameScene = gameScene;
 
-      inputController = new BuildInputController(view, catanMapJob);
+      inputController = new BuildInputController(view, catanMapJob, this);
    }
 
    @Override

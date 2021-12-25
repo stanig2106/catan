@@ -51,4 +51,46 @@ public enum LandCorner {
       return new LandCorner[] { this.getCornerClockwise(), this.getCornerCounterClockwise() };
    }
 
+   public LandSide getLandSideClockwise() {
+      switch (this) {
+         case topLeft:
+            return LandSide.topLeft;
+         case top:
+            return LandSide.topRight;
+         case topRight:
+            return LandSide.right;
+         case bottomRight:
+            return LandSide.bottomRight;
+         case bottom:
+            return LandSide.bottomLeft;
+         case bottomLeft:
+            return LandSide.left;
+         default:
+            throw new EnumConstantNotPresentException(this.getClass(), this.name());
+      }
+   }
+
+   public LandSide getLandSideCounterClockwise() {
+      switch (this) {
+         case topLeft:
+            return LandSide.left;
+         case top:
+            return LandSide.topLeft;
+         case topRight:
+            return LandSide.topRight;
+         case bottomRight:
+            return LandSide.right;
+         case bottom:
+            return LandSide.bottomRight;
+         case bottomLeft:
+            return LandSide.bottomLeft;
+         default:
+            throw new EnumConstantNotPresentException(this.getClass(), this.name());
+      }
+   }
+
+   public LandSide[] getAdjacentsLandSides() {
+      return new LandSide[] { this.getLandSideClockwise(), this.getLandSideCounterClockwise() };
+   }
+
 }

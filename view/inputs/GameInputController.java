@@ -1,12 +1,16 @@
 package view.inputs;
 
 import java.awt.Cursor;
+import java.awt.*;
 import java.awt.Image;
 import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
 
 import globalVariables.GameVariables;
+import player.developmentCards.Card;
+import util_my.Box;
 import util_my.Button;
 import util_my.Pair;
 import util_my.Promise;
@@ -39,8 +43,11 @@ public class GameInputController extends InputController {
       else
          this.view.content.setCursor(Cursor.getDefaultCursor());
 
+      this.gameInterfaceJob.setIndexOfOveredCard(indexOfOveredCard(event.getPoint()));
+
       if (this.view.backgroundPainting.updatePainting().await())
          this.view.background.repaint();
+
    }
 
    @Override
@@ -82,6 +89,22 @@ public class GameInputController extends InputController {
          default:
             break;
       }
+   }
 
+   int indexOfOveredCard(Point position) {
+      final int cardsSize = GameVariables.playerToPlay.inventory.cards.size();
+      if (cardsSize == 0)
+         return -1;
+      if (position.y < view.getContentSize().height - 70 - 40 || position.y > view.getContentSize().height - 70) {
+         return -1;
+      }
+      Box<Double> xOffset = Box.of((cardsSize % 2) / 2.);
+      xOffset.value -= (cardsSize - (cardsSize % 2 == 0 ? 1 : 0)) / 2.;
+
+      return IntStream.range(0, cardsSize).filter(i -> {
+         xOffset.value++;
+         return position.x > (view.getContentSize().width / 2. + (xOffset.value - 1) * 155) - 75
+               && position.x < (view.getContentSize().width / 2. + (xOffset.value - 1) * 155) + 75;
+      }).findFirst().orElse(-1);
    }
 }

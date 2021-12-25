@@ -1,9 +1,15 @@
 package player;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import map.ressources.Cost;
+import player.developmentCards.Card;
 import util_my.RessourceCount;
 
 public class Inventory extends RessourceCount {
+   public final List<Card> cards = new ArrayList<Card>();
+
    Inventory() {
       super();
    }
@@ -22,7 +28,7 @@ public class Inventory extends RessourceCount {
 
    // class Exception
    public static class NOT_ENOUGH_RESSOURCES extends Exception {
-      NOT_ENOUGH_RESSOURCES() {
+      public NOT_ENOUGH_RESSOURCES() {
          super();
       }
    }
