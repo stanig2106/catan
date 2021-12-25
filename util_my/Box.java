@@ -1,10 +1,10 @@
 package util_my;
 
 public class Box<T> {
-   public T data;
+   public T value;
 
    private Box(T data) {
-      this.data = data;
+      this.value = data;
    }
 
    public static <T> Box<T> of(T data) {

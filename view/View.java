@@ -7,11 +7,9 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
-import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.util.EventListener;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -22,13 +20,11 @@ import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.event.MouseInputListener;
 
-import util_my.Pair;
 import util_my.Timeout;
 import view.inputs.InputController;
 import view.painting.Painting;
 import view.painting.jobs.LoadingJob;
 import view.painting.jobs.NullJob;
-import view.scenes.StartMenuScene;
 
 public class View extends JFrame {
    // this.background.getGraphics();
@@ -289,17 +285,14 @@ class BackgroundPanel extends JPanel {
       StackTraceElement[] traces = Thread.currentThread().getStackTrace();
       boolean check = false;
       for (StackTraceElement trace : traces) {
-         if (check) {
+         if (check)
             if (trace.getMethodName().equals("safelyGetGraphics") || trace.getClassName().startsWith("javax.swing")
                   || trace.getClassName().startsWith("java.awt"))
                return super.getGraphics();
             else
-               throw new Error("Don't call getGraphics on background...");
-         }
-         if (trace.getMethodName().equals("getGraphics")) {
-            check = true;
-         }
+               break;
+         check = trace.getMethodName().equals("getGraphics");
       }
-      throw new Error("Don't call getGraphics on background...");
+      throw new UnsupportedOperationException("Don't call getGraphics on background...");
    }
 };

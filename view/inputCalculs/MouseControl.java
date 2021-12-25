@@ -54,10 +54,10 @@ public class MouseControl {
             Point center = CatanMapJob.landsPosition.get(coord);
             Line line = new Line(center, mousePosition);
             if (line.distance() < 1.10 * landSize
-                  && (nearestCoord.data.isEmpty() || nearestCoord.data.get().getValue() > line.distance()))
-               nearestCoord.data = Optional.of(Pair.of(coord, line.distance()));
+                  && (nearestCoord.value.isEmpty() || nearestCoord.value.get().getValue() > line.distance()))
+               nearestCoord.value = Optional.of(Pair.of(coord, line.distance()));
          });
-         return nearestCoord.data.map(nearestPair -> nearestPair.getKey());
+         return nearestCoord.value.map(nearestPair -> nearestPair.getKey());
       }
 
    }

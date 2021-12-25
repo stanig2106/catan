@@ -10,16 +10,8 @@ import javax.swing.event.MouseInputListener;
 import player.Player;
 import view.View;
 
-public abstract class InputController extends EventListener {
-   final View view;
-
-   InputController(View view) {
-      this.view = view;
-   }
-
-}
-
-abstract class EventListener implements MouseInputListener, MouseWheelListener, KeyListener, ComponentListener {
+public abstract class InputController
+      implements MouseInputListener, MouseWheelListener, KeyListener, ComponentListener {
    @Override
    public void componentHidden(ComponentEvent e) {
    }

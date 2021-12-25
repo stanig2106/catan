@@ -2,14 +2,17 @@ package view.inputs;
 
 import java.awt.*;
 import view.View;
+import view.painting.jobs.gameInterface.GameInterfaceJob;
+
 import java.awt.event.*;
 
 import util_my.Timeout;
 
 public class CatanMapInputController extends InputController {
+   final View view;
 
    public CatanMapInputController(View view) {
-      super(view);
+      this.view = view;
    }
 
    public void zoomCallback(boolean zoomUp, Point origine) {
@@ -54,7 +57,7 @@ public class CatanMapInputController extends InputController {
       }, 50);
    }
 
-   public void moveWithShiftCallback(int xOffset, int yOffset) {
+   public void moveCallback(int xOffset, int yOffset) {
       view.mapOffset.translate(xOffset, yOffset);
 
       view.mapCenterCalculator.needRecalculate = true;
@@ -79,9 +82,8 @@ public class CatanMapInputController extends InputController {
          return;
       }
 
-      if (event.isShiftDown())
-         moveWithShiftCallback(event.getX() - (int) this.oldPosition.getX(),
-               event.getY() - (int) this.oldPosition.getY());
+      moveCallback(event.getX() - (int) this.oldPosition.getX(),
+            event.getY() - (int) this.oldPosition.getY());
       this.oldPosition = event.getPoint();
       new Timeout(() -> {
          this.dragDisponible = true;

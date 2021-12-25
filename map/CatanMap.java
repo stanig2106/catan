@@ -60,8 +60,8 @@ public class CatanMap extends HexagonalGrids<Land> {
       IntStream.of(altOrders).boxed().forEach((Integer altOrder) -> {
          if (res.get(altOrder) instanceof Desert)
             return;
-         res.get(altOrder).setNumber(altMove[altIndex.data]);
-         altIndex.data++;
+         res.get(altOrder).setNumber(altMove[altIndex.value]);
+         altIndex.value++;
       });
 
       return res;
@@ -82,10 +82,10 @@ public class CatanMap extends HexagonalGrids<Land> {
       Box<String> res = Box.of("");
       this.forEachLine((List<Land> line) -> {
          line.forEach((Land land) -> {
-            res.data += land + " ";
+            res.value += land + " ";
          });
-         res.data += "\n";
+         res.value += "\n";
       });
-      return res.data;
+      return res.value;
    }
 }
