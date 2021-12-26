@@ -8,7 +8,7 @@ import java.awt.Point;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
+import java.awt.event.*;
 import java.awt.event.MouseWheelListener;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -18,9 +18,11 @@ import java.util.stream.Stream;
 import javax.swing.JFrame;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
-import javax.swing.event.MouseInputListener;
+import javax.swing.event.*;
 
+import util_my.Pair;
 import util_my.Timeout;
+import util_my.Pair.Triple;
 import view.inputs.InputController;
 import view.painting.Painting;
 import view.painting.jobs.LoadingJob;
@@ -79,7 +81,30 @@ public class View extends JFrame {
 
    }
 
-   public void removeAllListener(InputController... listener) {
+   public class ListenerSave
+         extends
+         Pair<Triple<ComponentListener[], MouseListener[], MouseMotionListener[]>, Pair<MouseWheelListener[], KeyListener[]>> {
+
+      public ListenerSave() {
+         super(Pair.tripleOf(
+               Stream.of(me.getComponentListeners()).filter(Predicate.not(me.defaultComponentListener::equals))
+                     .toArray(ComponentListener[]::new),
+               me.content.getMouseListeners(),
+               me.content.getMouseMotionListeners()),
+               Pair.of(me.content.getMouseWheelListeners(), me.content.getKeyListeners()));
+      }
+
+      public void restore() {
+         Stream.of(this.getKey().getA()).forEach(me::addComponentListener);
+         Stream.of(this.getKey().getB()).forEach(me.content::addMouseListener);
+         Stream.of(this.getKey().getC()).forEach(me.content::addMouseMotionListener);
+         Stream.of(this.getValue().getKey()).forEach(me.content::addMouseWheelListener);
+         Stream.of(this.getValue().getValue()).forEach(me.content::addKeyListener);
+      }
+
+   }
+
+   public void removeAllListener() {
       Stream.of(super.getComponentListeners()).filter(Predicate.not(this.defaultComponentListener::equals))
             .forEach(super::removeComponentListener);
 

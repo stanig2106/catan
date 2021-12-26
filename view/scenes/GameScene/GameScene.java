@@ -1,6 +1,8 @@
-package view.scenes;
+package view.scenes.GameScene;
 
 import java.util.List;
+
+import globalVariables.GameVariables;
 
 import java.awt.Image;
 import java.awt.*;
@@ -18,24 +20,30 @@ import view.painting.jobs.LoadingJob;
 import view.painting.jobs.gameInterface.GameInterfaceJob;
 
 public class GameScene extends Scene {
+   final CatanMapJob catanMapJob = new CatanMapJob(this.view);
+   final GameInterfaceJob gameInterfaceJob = new GameInterfaceJob(this);
+   public final BuildScene buildScene = new BuildScene(this.view, this, this.catanMapJob);
+   public final DicesScene dicesScene = new DicesScene(this.view);
 
-   public GameScene(View view) {
+   public GameScene(
+         View view) {
       super(view);
-
    }
 
    @Override
    public void enable() {
       this.preEnable();
-      final GameInterfaceJob gameInterfaceJob = new GameInterfaceJob(this);
-      view.backgroundPainting.updatePainting(new AndJob(new CatanMapJob(this.view), gameInterfaceJob))
+
+      view.backgroundPainting.updatePainting(new AndJob(this.catanMapJob, gameInterfaceJob))
             .await();
       view.background.repaint();
+
       final CatanMapInputController catanMapInputController = new CatanMapInputController(view);
       view.content.addMouseMotionListener(catanMapInputController);
       view.content.addMouseListener(catanMapInputController);
       view.content.addMouseWheelListener(catanMapInputController);
-      final GameInputController gameInputController = new GameInputController(view, this);
+
+      final GameInputController gameInputController = new GameInputController(view, this, gameInterfaceJob);
       view.content.addMouseMotionListener(gameInputController);
       view.content.addMouseListener(gameInputController);
    }
@@ -46,15 +54,15 @@ public class GameScene extends Scene {
    }
 
    public List<Pair<Button, Promise<Image>>> getButtons(Dimension dim) {
-      final Button dicesButton = new Button("DICES", 65, 65, Button.Position.start, Button.Position.middle,
-            10, -40, dim,
+      final Button dicesButton = new Button("DICES", 65, 65, Button.Position.end, Button.Position.middle,
+            -10, -40, dim,
             "Lunch dices");
-      dicesButton.disabled = true;
-      final Button buildButton = new Button("BUILD", 65, 65, Button.Position.start, Button.Position.middle,
-            10, 40, dim,
+      // dicesButton.disabled = true;
+      final Button buildButton = new Button("BUILD", 65, 65, Button.Position.end, Button.Position.middle,
+            -10, 40, dim,
             "Build");
       return List.of(
             Pair.of(dicesButton, GameInterfaceJob.dicesImage),
-            Pair.of(buildButton, GameInterfaceJob.buildImage));
+            Pair.of(buildButton, buildScene.enabled ? GameInterfaceJob.cancelImage : GameInterfaceJob.buildImage));
    }
 }

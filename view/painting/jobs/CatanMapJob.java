@@ -5,12 +5,14 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
+import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.ImageObserver;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import Jama.Matrix;
 import globalVariables.GameVariables;
@@ -23,6 +25,7 @@ import map.constructions.Building;
 
 import map.constructions.Route;
 import util_my.Coord;
+import util_my.Pair.Triple;
 import util_my.directions.LandCorner;
 import util_my.directions.LandSide;
 import view.View;
@@ -36,8 +39,53 @@ public class CatanMapJob extends PaintingJob {
    int landSize;
    Point mapCenter;
 
+   // Optional<Pair<Pair<Coord, LandCorner>, Building>> shadowBuilding =
+   // Optional.empty();
+   private Optional<Triple<Coord, LandCorner, Building>> shadowBuilding = Optional.empty();
+   private Optional<Triple<Coord, LandSide, Route>> shadowRoute = Optional.empty();
+   private boolean shadowChanged = false;
+
    public CatanMapJob(final View view) {
       this.view = view;
+   }
+
+   public void setShadow(Coord coord, LandCorner landCorner, Building building) {
+      this.shadowChanged = true;
+      this.shadowRoute = Optional.empty();
+      this.shadowBuilding = Optional.of(Triple.tripleOf(coord, landCorner, building));
+   }
+
+   public void setShadow(Coord coord, LandSide landSide, Route route) {
+      this.shadowChanged = true;
+      this.shadowBuilding = Optional.empty();
+      this.shadowRoute = Optional.of(Triple.tripleOf(coord, landSide, route));
+   }
+
+   public void removeShadow() {
+      this.shadowChanged = true;
+      this.shadowRoute = Optional.empty();
+      this.shadowBuilding = Optional.empty();
+   }
+
+   @Override
+   public void paint(Graphics2D g, Dimension dim, ImageObserver imageObserver) {
+      this.shadowChanged = false;
+
+      this.landSize = view.getLandSize();
+      this.mapCenter = view.getMapCenter();
+
+      this.backgroundJob.paint(g, dim, imageObserver);
+      new LandJob(this.landSize, this.mapCenter).paint(g, dim, imageObserver);
+      new NumberJob(this.landSize, this.mapCenter).paint(g, dim, imageObserver);
+      new RouteJob(this.landSize, this.mapCenter, shadowRoute).paint(g, dim, imageObserver);
+      new BuildingJob(this.landSize, this.mapCenter, shadowBuilding).paint(g, dim, imageObserver);
+   }
+
+   @Override
+   public boolean needReload() {
+      return this.shadowChanged || this.landSize != view.getLandSize()
+            || this.mapCenter.getX() != view.getMapCenter().getX()
+            || this.mapCenter.getY() != view.getMapCenter().getY();
    }
 
    public static void init(CatanMap map) { // called after map creation
@@ -58,29 +106,6 @@ public class CatanMapJob extends PaintingJob {
          landsPosition.put(coord, null);
       });
    }
-
-   @Override
-   public void paint(Graphics2D g, Dimension dim, ImageObserver imageObserver) {
-      System.out.println("Catan map job !");
-      this.landSize = view.getLandSize();
-      this.mapCenter = view.getMapCenter();
-
-      this.backgroundJob.paint(g, dim, imageObserver);
-      new LandJob(this.landSize, this.mapCenter).paint(g, dim, imageObserver);
-      new NumberJob(this.landSize, this.mapCenter).paint(g, dim, imageObserver);
-      new RouteJob(this.landSize, this.mapCenter).paint(g, dim, imageObserver);
-      new BuildingJob(this.landSize, this.mapCenter).paint(g, dim, imageObserver);
-
-      System.out.println("done");
-      System.out.println(".");
-   }
-
-   @Override
-   public boolean needReload() {
-      return this.landSize != view.getLandSize() || this.mapCenter.getX() != view.getMapCenter().getX()
-            || this.mapCenter.getY() != view.getMapCenter().getY();
-   }
-
 }
 
 class LandJob extends PaintingJob {
@@ -157,10 +182,12 @@ class NumberJob extends PaintingJob {
 class RouteJob extends PaintingJob {
    final int size;
    private final Point mapCenter;
+   final Optional<Triple<Coord, LandSide, Route>> shadowRoute;
 
-   public RouteJob(int size, Point mapCenter) {
+   public RouteJob(int size, Point mapCenter, Optional<Triple<Coord, LandSide, Route>> shadowRoute) {
       this.size = size;
       this.mapCenter = mapCenter;
+      this.shadowRoute = shadowRoute;
    }
 
    @Override
@@ -170,15 +197,29 @@ class RouteJob extends PaintingJob {
          Land land = GameVariables.map.get(coord);
          LandSide.stream().forEach(landSide -> {
             Border border = land.borders.get(landSide);
-            border.route.ifPresent(route -> {
-               if (drawnBorders.indexOf(border) == -1) {
-                  this.drawRouteOn(g, coord, landSide, dim, route, imageObserver);
-                  drawnBorders.add(border);
-               }
-            });
+            if (this.shadowRoute.map(shadowRoute -> {
+               return shadowRoute.getA().equals(coord) && shadowRoute.getB().equals(landSide);
+            }).orElse(false)) {
+               drawnBorders.add(border);
+               this.drawShadowRouteOn(g, coord, landSide, dim, shadowRoute.get().getC(), imageObserver);
+            } else
+               border.route.ifPresent(route -> {
+                  if (drawnBorders.indexOf(border) == -1) {
+                     this.drawRouteOn(g, coord, landSide, dim, route, imageObserver);
+                     drawnBorders.add(border);
+                  }
+               });
 
          });
       });
+   }
+
+   void drawShadowRouteOn(Graphics2D g, Coord coord, LandSide side, Dimension dim, Route route,
+         ImageObserver imageObserver) {
+      final Composite defaultComposite = g.getComposite();
+      g.setComposite(AlphaComposite.SrcOver.derive(0.7f));
+      this.drawRouteOn(g, coord, side, dim, route, imageObserver);
+      g.setComposite(defaultComposite);
    }
 
    public void drawRouteOn(Graphics2D g, Coord coord, LandSide side, Dimension dim, Route route,
@@ -243,10 +284,12 @@ class RouteJob extends PaintingJob {
 class BuildingJob extends PaintingJob {
    final int size;
    private final Point mapCenter;
+   final Optional<Triple<Coord, LandCorner, Building>> shadowBuilding;
 
-   public BuildingJob(int size, Point mapCenter) {
+   public BuildingJob(int size, Point mapCenter, Optional<Triple<Coord, LandCorner, Building>> shadowBuilding) {
       this.size = size;
       this.mapCenter = mapCenter;
+      this.shadowBuilding = shadowBuilding;
    }
 
    @Override
@@ -256,15 +299,29 @@ class BuildingJob extends PaintingJob {
          Land land = GameVariables.map.get(coord);
          LandCorner.stream().forEach(landCorner -> {
             Corner corner = land.corners.get(landCorner);
-            corner.building.ifPresent(building -> {
-               if (drawnCorners.indexOf(corner) == -1) {
-                  this.drawBuildingOn(g, coord, landCorner, dim, building, imageObserver);
-                  drawnCorners.add(corner);
-               }
-            });
+            if (this.shadowBuilding.map(shadowBuilding -> {
+               return shadowBuilding.getA().equals(coord) && shadowBuilding.getB().equals(landCorner);
+            }).orElse(false)) {
+               drawnCorners.add(corner); // sometimes, colony before shadow city
+               this.drawShadowBuildingOn(g, coord, landCorner, dim, shadowBuilding.get().getC(), imageObserver);
+            } else
+               corner.building.ifPresent(building -> {
+                  if (drawnCorners.indexOf(corner) == -1) {
+                     this.drawBuildingOn(g, coord, landCorner, dim, building, imageObserver);
+                     drawnCorners.add(corner);
+                  }
+               });
          });
       });
 
+   }
+
+   void drawShadowBuildingOn(Graphics2D g, Coord coord, LandCorner corner, Dimension dim, Building building,
+         ImageObserver imageObserver) {
+      final Composite defaultComposite = g.getComposite();
+      g.setComposite(AlphaComposite.SrcOver.derive(0.7f));
+      this.drawBuildingOn(g, coord, corner, dim, building, imageObserver);
+      g.setComposite(defaultComposite);
    }
 
    protected void drawBuildingOn(Graphics2D g, Coord coord, LandCorner corner, Dimension dim, Building building,

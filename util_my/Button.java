@@ -29,6 +29,11 @@ public class Button {
             yPosition.offsetCalculator(dim.getHeight(), yOffset, height), width, height, content);
    }
 
+   @Override
+   public boolean equals(Object obj) {
+      return obj instanceof Button && ((Button) obj).id.equals(this.id);
+   }
+
    public enum Position {
       start, middle, end;
 

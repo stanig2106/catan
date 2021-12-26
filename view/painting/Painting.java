@@ -16,13 +16,15 @@ import view.painting.jobs.AndJob;
 
 public class Painting {
    private BufferedImage image;
-   private Optional<BufferedImage> backup = Optional.empty();
-   private Optional<Dimension> backupDimension = Optional.empty();
    private int width, height;
    private PaintingJob job;
 
    private Painting() {
 
+   }
+
+   public PaintingJob getJobs() {
+      return this.job;
    }
 
    public static Promise<Painting> newPainting(Dimension dim, PaintingJob job) {
@@ -48,73 +50,71 @@ public class Painting {
       });
    }
 
-   public Promise<Void> forceUpdatePainting() {
+   public Promise<Boolean> forceUpdatePainting() {
       return this.updatePainting(width, height, job, true);
    }
 
-   public Promise<Void> updatePainting(Painting painting) {
+   public Promise<Boolean> updatePainting(Painting painting) {
       return this.updatePainting(painting.width, painting.height, painting.job, false);
    }
 
-   public Promise<Void> updatePainting(Promise<Painting> promisedPainting) {
-      return new Promise<Void>((resolve, reject) -> {
+   public Promise<Boolean> updatePainting(Promise<Painting> promisedPainting) {
+      return new Promise<Boolean>((resolve, reject) -> {
          final Painting painting = promisedPainting.await();
-         this.updatePainting(painting.width, painting.height, painting.job, false).await();
-         resolve.accept(null);
+         resolve.accept(this.updatePainting(painting.width, painting.height, painting.job, false).await());
       });
    }
 
-   public Promise<Void> updatePainting(int width, int height, PaintingJob job) {
+   public Promise<Boolean> updatePainting(int width, int height, PaintingJob job) {
       return this.updatePainting(width, height, job, false);
    }
 
-   private Promise<Void> updatePainting(int width, int height, PaintingJob job, boolean force) {
+   private Promise<Boolean> updatePainting(int width, int height, PaintingJob job, boolean force) {
       final int oldWidth = this.width;
       final int oldHeight = this.height;
       final PaintingJob oldJob = this.job;
       this.width = width;
       this.height = height;
       this.job = job;
-      return new Promise<Void>((resolve, reject) -> {
+      return new Promise<Boolean>((resolve, reject) -> {
          if (width <= 0 || height <= 0) {
             System.out.println("dim 0");
-            resolve.accept(null);
+            resolve.accept(false);
             return;
          }
          if (oldWidth == this.width && oldHeight == this.height && oldJob == this.job && !force
                && !this.job.needReload()) {
             // System.out.println("Already worked");
-            resolve.accept(null);
+            resolve.accept(false);
             return;
          }
-         resolve.accept(null);
 
          final BufferedImage image = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_ARGB);
          final Graphics2D g = (Graphics2D) image.getGraphics();
 
          this.job.paint(g, new Dimension(image.getWidth(), image.getHeight()));
          this.image = image;
-         resolve.accept(null);
+         resolve.accept(true);
       });
    }
 
-   public Promise<Void> updatePainting(Dimension dim, PaintingJob job) {
+   public Promise<Boolean> updatePainting(Dimension dim, PaintingJob job) {
       return this.updatePainting((int) dim.getWidth(), (int) dim.getHeight(), job);
    }
 
-   public Promise<Void> updatePainting(Dimension dim) {
+   public Promise<Boolean> updatePainting(Dimension dim) {
       return this.updatePainting((int) dim.getWidth(), (int) dim.getHeight(), this.job);
    }
 
-   public Promise<Void> updatePainting(int width, int height) {
+   public Promise<Boolean> updatePainting(int width, int height) {
       return this.updatePainting(width, height, this.job);
    }
 
-   public Promise<Void> updatePainting(PaintingJob job) {
+   public Promise<Boolean> updatePainting(PaintingJob job) {
       return this.updatePainting(this.width, this.height, job);
    }
 
-   public Promise<Void> updatePainting() {
+   public Promise<Boolean> updatePainting() {
       return this.updatePainting(this.width, this.height, this.job);
    }
 
@@ -141,55 +141,6 @@ public class Painting {
          to.getGraphics().drawImage(this.image, 0, 0, to);
          resolve.accept(null);
       });
-   }
-
-   public Promise<Void> paintBackupTo(JPanel to, Graphics2D g) {
-      return new Promise<Void>((resolve, reject) -> {
-         g.drawImage(this.backup.orElse(this.image), 0, 0, to);
-         resolve.accept(null);
-      });
-   }
-
-   public Promise<Void> paintBackupTo(Canvas to) {
-      return new Promise<Void>((resolve, reject) -> {
-         to.getGraphics().drawImage(this.backup.orElse(this.image), 0, 0, to);
-         resolve.accept(null);
-      });
-   }
-
-   public void backup() {
-      this.setBackup(this.image);
-   }
-
-   public void destroyBackup() {
-      this.backup = Optional.empty();
-      this.backupDimension = Optional.empty();
-   }
-
-   public Optional<Dimension> getBackupDimension() {
-      return backupDimension;
-   }
-
-   public boolean hasBackup() {
-      return this.backup.isPresent();
-   }
-
-   public Optional<BufferedImage> getBackup() {
-      return backup;
-   }
-
-   public Optional<Promise<BufferedImage>> getBackupClone() {
-      return this.backup.map(backup -> new Promise<BufferedImage>((resolve, reject) -> {
-         BufferedImage image = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_ARGB);
-         Graphics2D g = (Graphics2D) image.getGraphics();
-         g.drawImage(backup, 0, 0, null);
-         resolve.accept(image);
-      }));
-   }
-
-   public void setBackup(BufferedImage backup) {
-      this.backup = Optional.of(backup);
-      this.backupDimension = Optional.of(new Dimension(this.image.getWidth(), this.image.getHeight()));
    }
 
    public static abstract class PaintingJob {

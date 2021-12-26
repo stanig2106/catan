@@ -7,13 +7,25 @@ public class Pair<K, V> implements java.util.Map.Entry<K, V> {
    K key;
    V value;
 
-   private Pair(K key, V value) {
+   protected Pair(K key, V value) {
       this.key = key;
       this.value = value;
    }
 
    public static <K, V> Pair<K, V> of(K key, V value) {
       return new Pair<K, V>(key, value);
+   }
+
+   public static <A, B, C> Triple<A, B, C> tripleOf(A A_Value, B B_Value, C C_Value) {
+      return new Triple<A, B, C>(A_Value, B_Value, C_Value);
+   }
+
+   public static <A, B, C> Triple<A, B, C> tripleOf(Pair<A, B> A_B_Values, C C_Value) {
+      return Pair.tripleOf(A_B_Values.getKey(), A_B_Values.getValue(), C_Value);
+   }
+
+   public static <A, B, C> Triple<A, B, C> tripleOf(A A_Value, Pair<B, C> B_C_Values) {
+      return Pair.tripleOf(A_Value, B_C_Values.getKey(), B_C_Values.getValue());
    }
 
    @Override
@@ -55,4 +67,23 @@ public class Pair<K, V> implements java.util.Map.Entry<K, V> {
       mapFunction.accept(this.key, this.value);
    }
 
+   public static class Triple<A, B, C> extends Pair<Pair<A, B>, C> {
+
+      private Triple(A A_Value, B B_Value, C C_Value) {
+         super(Pair.of(A_Value, B_Value), C_Value);
+      }
+
+      public A getA() {
+         return this.getKey().getKey();
+      }
+
+      public B getB() {
+         return this.getKey().getValue();
+      }
+
+      public C getC() {
+         return this.getValue();
+      }
+
+   }
 }
