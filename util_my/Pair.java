@@ -67,6 +67,10 @@ public class Pair<K, V> implements java.util.Map.Entry<K, V> {
       mapFunction.accept(this.key, this.value);
    }
 
+   public Pair<V, K> inverse() {
+      return Pair.of(value, key);
+   }
+
    public static class Triple<A, B, C> extends Pair<Pair<A, B>, C> {
 
       private Triple(A A_Value, B B_Value, C C_Value) {

@@ -1,6 +1,9 @@
 package view.scenes.GameScene;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import globalVariables.GameVariables;
 
@@ -53,16 +56,43 @@ public class GameScene extends Scene {
 
    }
 
-   public List<Pair<Button, Promise<Image>>> getButtons(Dimension dim) {
+   private boolean dicesLunched = false;
+
+   public List<Pair<Button, Optional<Promise<Image>>>> getButtons(Dimension dim) {
       final Button dicesButton = new Button("DICES", 65, 65, Button.Position.end, Button.Position.middle,
-            -10, -40, dim,
+            -10, -80, dim,
             "Lunch dices");
-      // dicesButton.disabled = true;
+      dicesButton.disabled = this.gameInterfaceJob.isAllDisabled() || this.getDicesLunched();
       final Button buildButton = new Button("BUILD", 65, 65, Button.Position.end, Button.Position.middle,
-            -10, 40, dim,
+            -10, 0, dim,
             "Build");
+      buildButton.disabled = this.gameInterfaceJob.isAllDisabled() || !this.getDicesLunched();
+      final Button doneButton = new Button("DONE", 65, 65, Button.Position.end, Button.Position.middle,
+            -10, 80, dim,
+            "Done");
+      doneButton.disabled = this.gameInterfaceJob.isAllDisabled() || !this.getDicesLunched();
       return List.of(
-            Pair.of(dicesButton, GameInterfaceJob.dicesImage),
-            Pair.of(buildButton, buildScene.enabled ? GameInterfaceJob.cancelImage : GameInterfaceJob.buildImage));
+            Pair.of(dicesButton, Optional.of(GameInterfaceJob.dicesImage)),
+            Pair.of(buildButton,
+                  Optional.of(buildScene.enabled ? GameInterfaceJob.cancelImage : GameInterfaceJob.buildImage)),
+            Pair.of(doneButton, Optional.empty()));
+   }
+
+   public boolean getDicesLunched() {
+      return dicesLunched;
+   }
+
+   public void setDicesLunched(boolean value) {
+      if (this.dicesLunched != value)
+         this.gameInterfaceJob.manualReload = true;
+      this.dicesLunched = value;
+   }
+
+   public void newTurn() {
+      this.setDicesLunched(false);
+      this.buildScene.disable();
+      GameVariables.playerToPlay = Stream.of(GameVariables.players)
+            .dropWhile(Predicate.not(GameVariables.playerToPlay::equals)).skip(1)
+            .findFirst().orElse(GameVariables.players[0]);
    }
 }

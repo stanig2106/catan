@@ -1,6 +1,7 @@
 package player.plays;
 
 import globalVariables.GameVariables;
+import map.Land;
 import map.constructions.City​​;
 import player.Player;
 
@@ -22,20 +23,16 @@ public class LunchDices extends Play {
    }
 
    private void not7Execute() {
-      GameVariables.map.forEach((land) -> {
-         if (land.getNumber() != dicesResult)
-            return;
-         land.buildings().filter((building) -> {
-            return building.owner == this.player;
-         }).forEach((building) -> {
-            this.player.ressources.add(land.getRessource());
-            if (building instanceof City​​)
-               this.player.ressources.add(land.getRessource());
+      GameVariables.map.getAll().stream().filter(land -> land.getNumber() == dicesResult).forEach(land -> {
+         land.buildings().forEach(building -> {
+            land.getRessource().ifPresent(ressource -> {
+               building.owner.ressources.add(ressource, building instanceof City​​ ? 2 : 1);
+            });
          });
       });
    }
 
    private void is7execute() {
-      this.player.askPlaceThief().execute();
+      // this.player.askPlaceThief().execute();
    }
 }

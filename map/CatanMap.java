@@ -1,16 +1,22 @@
 package map;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.awt.*;
 import config.Config;
 import globalVariables.ViewVariables;
+import map.constructions.Route;
+import player.Player;
 import util_my.Box;
 import util_my.Coord;
 import util_my.HexagonalGrids;
+import util_my.Pair;
 import util_my.Promise;
 import view.painting.jobs.CatanMapJob;
 
@@ -75,6 +81,44 @@ public class CatanMap extends HexagonalGrids<Land> {
       });
       this.forEach(land -> land.addMissingBorderAndCorner());
       this.forEach(land -> land.linkAllBorderAndCorner());
+   }
+
+   public List<Pair<Integer, Player>> getRouteLength() {
+      List<List<Route>> pathsSummary = new ArrayList<List<Route>>();
+      this.forEach(land -> {
+         land.borders.values().stream().filter(border -> border.route.isPresent())
+               .filter(border /* border with route */ -> pathsSummary.stream()
+                     .noneMatch(path -> path.contains(border.route.get())))
+               .forEach(border /* border with route and not in pathsSummary */ -> {
+
+                  border.adjacentBorders.stream()
+                        .filter(adjacentBorder -> adjacentBorder.route.isPresent()
+                              && adjacentBorder.route.get().owner.equals(border.route.get().owner))
+                        .map(adjacentBorder /* adjacentBorder with route of same owner as border's route */ -> border.route
+                              .get())
+                        .forEach(adjacentRoute /* adjacentRoute with same owner */ -> {
+                           if (pathsSummary.stream()
+                                 .filter(path -> path.contains(border.route.get())).peek(path -> {
+                                    path.add(border.route.get());
+                                 }).count() == 0)
+                              pathsSummary.add(new ArrayList<Route>() {
+                                 {
+                                    this.add(border.route.get());
+                                 }
+                              });
+                        });
+
+               });
+
+      });
+
+      return pathsSummary.stream().sorted(Comparator.comparingInt(List::size))
+            .collect(Collectors.groupingBy(path -> {
+               return path.get(0).owner;
+            })).entrySet().stream().map(entry -> Pair.of(entry.getKey(),
+                  entry.getValue().stream().max(Comparator.comparingInt(List::size)).get().size()))
+            .map(Pair::inverse)
+            .collect(Collectors.toList());
    }
 
    @Override

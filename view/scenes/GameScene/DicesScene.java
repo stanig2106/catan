@@ -42,7 +42,7 @@ public class DicesScene extends Scene {
       if (view.backgroundPainting.updatePainting().await())
          view.background.repaint();
       new Timeout(1000).join();
-
+      play.execute();
       if (view.backgroundPainting.updatePainting(backupJobs).await())
          view.background.repaint();
 

@@ -21,6 +21,10 @@ public abstract class RessourceCount extends HashMap<Ressources, Integer> {
       Stream.of(Ressources.values()).forEach((ressource) -> this.put(ressource, 0));
    }
 
+   public int getCount(Ressources ressource) {
+      return super.get(ressource);
+   }
+
    public void set(Ressources ressource, int value) {
       this.replace(ressource, value);
    }
