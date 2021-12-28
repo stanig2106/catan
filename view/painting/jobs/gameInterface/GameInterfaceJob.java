@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 import globalVariables.GameVariables;
 import globalVariables.ViewVariables;
 import map.ressources.Ressources;
+import player.Player;
 import util_my.Button;
 import util_my.DrawUtils;
 import util_my.Pair;
@@ -21,9 +22,12 @@ import view.painting.Painting.PaintingJob;
 import view.scenes.GameScene.GameScene;
 
 public class GameInterfaceJob extends PaintingJob {
-   public static final Promise<Image> buildImage = ViewVariables.importImage("assets/menu/icons/Build.png");
-   public static final Promise<Image> dicesImage = ViewVariables.importImage("assets/menu/icons/Dices.png");
-   public static final Promise<Image> cancelImage = ViewVariables.importImage("assets/menu/icons/Cancel.png");
+   public static final Promise<Image> buildImage = ViewVariables.importImage("assets/menu/icons/Build.png", 2000);
+   public static final Promise<Image> dicesImage = ViewVariables.importImage("assets/menu/icons/Dices.png", 2000);
+   public static final Promise<Image> cancelImage = ViewVariables.importImage("assets/menu/icons/Cancel.png", 2000);
+   public static final Promise<Image> playImage = ViewVariables.importImage("assets/menu/icons/Play.png", 2000);
+   public static final Promise<Image> botImage = ViewVariables.importImage("assets/menu/icons/Bot.png", 2000);
+
    public Optional<Button> overedButton = Optional.empty();
    private Optional<Button> saveOveredButton = Optional.empty();
    final GameScene gameScene;
@@ -64,6 +68,7 @@ public class GameInterfaceJob extends PaintingJob {
       }));
 
       new GameRessourcesInterfaceJob().paint(g, dim, imageObserver);
+      new GamePlayerInterfaceJob().paint(g, dim, imageObserver);
    }
 
    @Override
@@ -87,6 +92,45 @@ class GamePlayerInterfaceJob extends PaintingJob {
 
    @Override
    public void paint(Graphics2D g, Dimension dim, ImageObserver imageObserver) {
+      IntStream.rangeClosed(0, 3).forEach(i -> {
+         paintPlayer(GameVariables.playerToPlay, new Point(10, 10 + i * 130), g, dim, imageObserver);
+      });
+   }
+
+   void paintPlayer(Player player, Point position, Graphics2D g, Dimension dim, ImageObserver imageObserver) {
+      Stroke defaultStroke = g.getStroke();
+
+      g.setColor(player.color.getColor().darker());
+      IntStream.rangeClosed(0, 4).forEach(i -> {
+         g.fillRoundRect(position.x + 5 + i * 40, position.y + 26, 40, 80, 40, 40);
+      });
+
+      g.setColor(player.color.getColor().darker().darker());
+      g.setStroke(new BasicStroke(2));
+      IntStream.rangeClosed(0, 4).forEach(i -> {
+         g.drawRoundRect(position.x + 5 + i * 40, position.y + 26, 40, 80, 40, 40);
+      });
+      g.setStroke(defaultStroke);
+
+      g.setColor(player.color.getColor());
+      g.fillRect(position.x - 2, position.y + 2, 215 + 2, 40);
+
+      g.setColor(Color.WHITE);
+      g.setFont(ViewVariables.SerialFont.deriveFont(24f));
+      if (player instanceof Player.IA)
+         DrawUtils.drawCenteredImage(g, GameInterfaceJob.botImage.await(), 24, 27,
+               new Rectangle(position.x, position.y + 2, 40, 40), imageObserver);
+      DrawUtils.drawVerticalCenteredString(g, player.name,
+            new Rectangle(position.x + 4 + (player instanceof Player.IA ? 35 : 0), position.y + 10, 0, 40));
+      if (player == GameVariables.playerToPlay)
+         DrawUtils.drawCenteredImage(g, GameInterfaceJob.playImage.await(), 35, 24,
+               new Rectangle(position.x + 170, position.y + 2, 40, 40), imageObserver);
+
+      g.setColor(new Color(215, 152, 47));
+      g.setStroke(new BasicStroke(2));
+      g.drawRect(position.x, position.y, 215, 2);
+      g.drawRect(position.x, position.y + 42, 215, 2);
+      g.setStroke(defaultStroke);
 
    }
 

@@ -2,6 +2,7 @@ package player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.awt.*;
 
 import map.constructions.Building;
 import map.constructions.Route;
@@ -20,11 +21,13 @@ public abstract class Player {
 
    static int playersCount = 0;
 
-   public final Color color;
+   public final PlayerColors color;
    public final int playerNumber = Player.playersCount++;
 
+   public final String name = "hello world";
+
    Player() {
-      this.color = Color.values()[playerNumber];
+      this.color = PlayerColors.values()[playerNumber];
    }
 
    public boolean haveEnough(Cost cost) {
@@ -81,7 +84,26 @@ public abstract class Player {
 
    }
 
-   public static enum Color {
+   public static enum PlayerColors {
       blue, green, yellow, purple, red, orange;
+
+      public Color getColor() {
+         switch (this) {
+            case blue:
+               return new Color(0, 174, 255);
+            case green:
+               return new Color(0, 147, 0);
+            case yellow:
+               return new Color(233, 189, 0);
+            case purple:
+               return new Color(163, 73, 255);
+            case red:
+               return new Color(252, 0, 45);
+            case orange:
+               return new Color(234, 125, 0);
+            default:
+               throw new EnumConstantNotPresentException(this.getClass(), this.name());
+         }
+      }
    }
 }

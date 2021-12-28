@@ -10,6 +10,7 @@ import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.*;
 import java.awt.event.MouseWheelListener;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -25,6 +26,8 @@ import util_my.Timeout;
 import util_my.Pair.Triple;
 import view.inputs.InputController;
 import view.painting.Painting;
+import view.painting.Painting.PaintingJob;
+import view.painting.jobs.ErrorSizeJob;
 import view.painting.jobs.LoadingJob;
 import view.painting.jobs.NullJob;
 
@@ -197,8 +200,21 @@ public class View extends JFrame {
    //
    // Callback
    //
+   private Optional<Pair<PaintingJob, ListenerSave>> jobSave = Optional.empty();
 
    public void resizeCallback() {
+      if (jobSave.isEmpty() && (this.getContentSize().getWidth() < 700 || this.getContentSize().getHeight() < 600)) {
+         jobSave = Optional.of(Pair.of(this.backgroundPainting.getJobs(), new ListenerSave()));
+         this.removeAllListener();
+         this.backgroundPainting.updatePainting(new ErrorSizeJob()).await();
+      }
+
+      if (jobSave.isPresent() && this.getContentSize().getWidth() >= 700 && this.getContentSize().getHeight() >= 600) {
+         jobSave.get().getValue().restore();
+         this.backgroundPainting.updatePainting(jobSave.get().getKey()).await();
+         jobSave = Optional.empty();
+      }
+
       landSizeCalculator.needRecalculate = true;
       mapCenterCalculator.needRecalculate = true;
       this.background.setSize(this.getContentSize());

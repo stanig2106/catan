@@ -6,16 +6,16 @@ import java.util.stream.Stream;
 
 import map.ressources.Cost;
 import player.Player;
-import player.Player.Color;
+import player.Player.PlayerColors;
 import util_my.Promise;
 import globalVariables.ViewVariables;
 
 import java.awt.*;
 
 public class Route extends Construction {
-   public static final Map<Color, Promise<Image>> images = new HashMap<Color, Promise<Image>>() {
+   public static final Map<PlayerColors, Promise<Image>> images = new HashMap<PlayerColors, Promise<Image>>() {
       {
-         Stream.of(Color.values()).forEach(color -> {
+         Stream.of(PlayerColors.values()).forEach(color -> {
             String colorString = color.toString().substring(0, 1).toUpperCase() + color.toString().substring(1);
             this.put(color, ViewVariables.importImage("assets/routes/Route" + colorString + ".png", -1));
          });
