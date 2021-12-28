@@ -5,7 +5,7 @@ import java.util.function.Function;
 import map.Land;
 import map.Land.BUILD;
 import map.Land.BUILD.ROUTE_ON_ROUTE;
-import map.constructions.City​​;
+import map.constructions.City;
 import map.constructions.Colony;
 import map.constructions.Construction;
 import map.constructions.Route;
@@ -80,12 +80,12 @@ class BuildColony extends Build<Colony> {
    }
 }
 
-class BuildCity extends Build<City​​> {
+class BuildCity extends Build<City> {
    Land position;
    LandCorner positionCorner;
 
    BuildCity(Player player, Land position, LandCorner positionCorner) {
-      super(player, City​​.cost, City​​::new);
+      super(player, City.cost, City::new);
 
       this.position = position;
       this.positionCorner = positionCorner;

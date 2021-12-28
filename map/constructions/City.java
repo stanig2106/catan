@@ -23,7 +23,7 @@ public class City​​ extends Building {
    };
    public final static Cost cost = new Cost(1, 1, 1, 0, 1);
 
-   public City​​(Player owner) {
-      super(owner, City​​.images.get(owner.color));
+   public City(Player owner) {
+      super(owner, City.images.get(owner.color));
    }
 }
