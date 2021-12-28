@@ -12,7 +12,7 @@ import globalVariables.ViewVariables;
 
 import java.awt.*;
 
-public class City​​ extends Building {
+public class City extends Building {
    public static final Map<Color, Promise<Image>> images = new HashMap<Color, Promise<Image>>() {
       {
          Stream.of(Color.values()).forEach(color -> {
@@ -23,7 +23,7 @@ public class City​​ extends Building {
    };
    public final static Cost cost = new Cost(1, 1, 1, 0, 1);
 
-   public City​​(Player owner) {
-      super(owner, City​​.images.get(owner.color));
+   public City(Player owner) {
+      super(owner, City.images.get(owner.color));
    }
 }

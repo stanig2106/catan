@@ -6,18 +6,14 @@
 
 package map;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import globalVariables.GameVariables;
 import map.constructions.Building;
-import map.constructions.City​​;
+import map.constructions.City;
 import map.constructions.Colony;
 import map.constructions.Route;
 import map.ressources.Ressources;
@@ -193,13 +189,13 @@ public abstract class Land {
       if (cornerPosition.adjacentCorners.stream().anyMatch(adjacentCorner -> adjacentCorner.building.isPresent()))
          throw new BUILD.BUILDING_NEAR_BUILDING();
       if (oldBuilding.isEmpty()) {
-         if (newBuilding instanceof City​​)
+         if (newBuilding instanceof City)
             throw new BUILD.CITY_WITHOUT_COLONY();
          return;
       }
       if (oldBuilding.get().owner != newBuilding.owner)
          throw new BUILD.BUILDING_ON_OPPONENT_BUILDING();
-      if (oldBuilding.get() instanceof City​​)
+      if (oldBuilding.get() instanceof City)
          throw new BUILD.BUILDING_ON_CITY();
       if (newBuilding instanceof Colony)
          throw new BUILD.COLONY_ON_COLONY();

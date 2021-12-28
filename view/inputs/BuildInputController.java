@@ -6,7 +6,7 @@ import java.util.Optional;
 import globalVariables.GameVariables;
 import map.Land.BUILD;
 import map.Land.BUILD.CITY_WITHOUT_COLONY;
-import map.constructions.City​​;
+import map.constructions.City;
 import map.constructions.Colony;
 import map.constructions.Route;
 import view.View;
@@ -65,9 +65,9 @@ public class BuildInputController extends InputController {
             this.catanMapJob.setShadow(summary.nearestLandCoord.get(), summary.nearestLandCorner.get(),
                   new Colony(GameVariables.playerToPlay));
          else if (GameVariables.map.get(summary.nearestLandCoord.get()).canSetBuilding(summary.nearestLandCorner.get(),
-               new City​​(GameVariables.playerToPlay)))
+               new City(GameVariables.playerToPlay)))
             this.catanMapJob.setShadow(summary.nearestLandCoord.get(), summary.nearestLandCorner.get(),
-                  new City​​(GameVariables.playerToPlay));
+                  new City(GameVariables.playerToPlay));
          else
             this.catanMapJob.removeShadow();
       else
@@ -106,7 +106,7 @@ public class BuildInputController extends InputController {
          this.catanMapJob.removeShadow();
          try {
             GameVariables.map.get(summary.nearestLandCoord.get()).setBuilding(summary.nearestLandCorner.get(),
-                  new City​​(GameVariables.playerToPlay));
+                  new City(GameVariables.playerToPlay));
          } catch (final CITY_WITHOUT_COLONY _e) {
             try {
                GameVariables.map.get(summary.nearestLandCoord.get()).setBuilding(summary.nearestLandCorner.get(),
