@@ -10,6 +10,7 @@ import player.developmentCards.Card;
 import view.View;
 import view.scenes.StartMenuScene;
 import view.scenes.GameScene.GameScene;
+import view.scenes.GameScene.RobberScene;
 
 public abstract class GameVariables {
    public static CatanMap map;
@@ -18,6 +19,7 @@ public abstract class GameVariables {
    public abstract static class scenes {
       public static StartMenuScene startMenuScene;
       public static GameScene gameScene;
+
    }
 
    public static boolean console = false;

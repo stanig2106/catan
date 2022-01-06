@@ -2,6 +2,7 @@ package view.inputs;
 
 import java.awt.event.MouseEvent;
 import java.awt.*;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Optional;
 import java.util.Set;
@@ -164,6 +165,18 @@ public class BuildInputController extends InputController {
 
       static Set<Modes> all() {
          return Set.of(Modes.values());
+      }
+
+      static Set<Modes> byRessources() {
+         Set<Modes> res = new HashSet<Modes>();
+         if (GameVariables.getMe().haveEnough(Route.cost))
+            res.add(Modes.route);
+         if (GameVariables.getMe().haveEnough(Colony.cost))
+            res.add(Modes.colony);
+         if (GameVariables.getMe().haveEnough(City.cost))
+            res.add(Modes.city);
+         return res;
+
       }
    }
 

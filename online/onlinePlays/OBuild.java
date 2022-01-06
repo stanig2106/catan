@@ -16,7 +16,6 @@ final public class OBuild {
    }
 
    public static void exec(String type, Coord coord, String position) {
-      System.out.println("Obuild " + type);
       switch (type) {
          case "colony":
             try {

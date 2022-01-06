@@ -24,7 +24,9 @@ import map.constructions.Building;
 
 import map.constructions.Route;
 import util_my.Coord;
+import util_my.DrawUtils;
 import util_my.Matrix;
+import util_my.Promise;
 import util_my.Pair.Triple;
 import util_my.directions.LandCorner;
 import util_my.directions.LandSide;
@@ -43,6 +45,7 @@ public class CatanMapJob extends PaintingJob {
    // Optional.empty();
    private Optional<Triple<Coord, LandCorner, Building>> shadowBuilding = Optional.empty();
    private Optional<Triple<Coord, LandSide, Route>> shadowRoute = Optional.empty();
+   private Optional<Coord> shadowRobber = Optional.empty();
    private boolean shadowChanged = false;
 
    public CatanMapJob(final View view) {
@@ -53,18 +56,28 @@ public class CatanMapJob extends PaintingJob {
       this.shadowChanged = true;
       this.shadowRoute = Optional.empty();
       this.shadowBuilding = Optional.of(Triple.tripleOf(coord, landCorner, building));
+      this.shadowRobber = Optional.empty();
    }
 
    public void setShadow(Coord coord, LandSide landSide, Route route) {
       this.shadowChanged = true;
       this.shadowBuilding = Optional.empty();
       this.shadowRoute = Optional.of(Triple.tripleOf(coord, landSide, route));
+      this.shadowRobber = Optional.empty();
+   }
+
+   public void setShadowRobber(Coord coord) {
+      this.shadowChanged = true;
+      this.shadowBuilding = Optional.empty();
+      this.shadowRoute = Optional.empty();
+      this.shadowRobber = Optional.of(coord);
    }
 
    public void removeShadow() {
       this.shadowChanged = true;
       this.shadowRoute = Optional.empty();
       this.shadowBuilding = Optional.empty();
+      this.shadowRobber = Optional.empty();
    }
 
    @Override
@@ -77,6 +90,7 @@ public class CatanMapJob extends PaintingJob {
       this.backgroundJob.paint(g, dim, imageObserver);
       new LandJob(this.landSize, this.mapCenter).paint(g, dim, imageObserver);
       new NumberJob(this.landSize, this.mapCenter).paint(g, dim, imageObserver);
+      new RoberJob(this.landSize, this.mapCenter, shadowRobber).paint(g, dim, imageObserver);
       new RouteJob(this.landSize, this.mapCenter, shadowRoute).paint(g, dim, imageObserver);
       new BuildingJob(this.landSize, this.mapCenter, shadowBuilding).paint(g, dim, imageObserver);
    }
@@ -384,6 +398,52 @@ class BackgroundJob extends PaintingJob {
    public void paint(Graphics2D g, Dimension dim, ImageObserver imageObserver) {
       g.setColor(new Color(22, 145, 198));
       g.fillRect(0, 0, (int) dim.getWidth(), (int) dim.getHeight());
+   }
+
+}
+
+class RoberJob extends PaintingJob {
+   final static Promise<Image> robberImage = ViewVariables.importImage("assets/Robber.png");
+   final int landSize;
+   final Point mapCenter;
+   final Coord robber;
+   final Optional<Coord> shadowRobber;
+
+   public RoberJob(int landSize, Point mapCenter, Optional<Coord> shadowRobber) {
+      this.landSize = landSize;
+      this.mapCenter = mapCenter;
+      this.robber = GameVariables.map.robber.position.coord;
+      this.shadowRobber = shadowRobber;
+   }
+
+   @Override
+   public void paint(Graphics2D g, Dimension dim, ImageObserver imageObserver) {
+      Coord coord = GameVariables.map.robber.position.coord;
+      Matrix position = ViewVariables.hexToPixelMatrix.times(coord.toMatrix()).times(landSize);
+      int x = (int) position.get(0, 0);
+      int y = (int) position.get(1, 0);
+
+      DrawUtils.drawCenteredImage(g, robberImage.await(), landSize * .75, landSize * .75,
+            new Rectangle(x + mapCenter.x - (int) (landSize * 0.10), y + mapCenter.y - (int) (landSize * 0.10),
+                  (int) (landSize * .75), (int) (landSize * .75)),
+            imageObserver);
+
+      //
+
+      if (this.shadowRobber.isEmpty())
+         return;
+      coord = this.shadowRobber.get();
+      position = ViewVariables.hexToPixelMatrix.times(coord.toMatrix()).times(landSize);
+      x = (int) position.get(0, 0);
+      y = (int) position.get(1, 0);
+      final Composite defaultComposite = g.getComposite();
+      g.setComposite(AlphaComposite.SrcOver.derive(0.8f));
+      DrawUtils.drawCenteredImage(g, robberImage.await(), landSize * .75, landSize * .75,
+            new Rectangle(x + mapCenter.x - (int) (landSize * 0.10), y + mapCenter.y - (int) (landSize * 0.10),
+                  (int) (landSize * .75), (int) (landSize * .75)),
+            imageObserver);
+      g.setComposite(defaultComposite);
+
    }
 
 }

@@ -28,6 +28,8 @@ public class GameScene extends Scene {
 
    public final BuildScene buildScene = new BuildScene(this.view, this, this.catanMapJob);
    public final DicesScene dicesScene = new DicesScene(this.view);
+   public final RobberScene robberScene = new RobberScene();
+   public GameInputController gameInputController;
 
    public GameScene(View view) {
       super(view);
@@ -45,9 +47,10 @@ public class GameScene extends Scene {
       view.content.addMouseListener(catanMapInputController);
       view.content.addMouseWheelListener(catanMapInputController);
 
-      final GameInputController gameInputController = new GameInputController(view, this, gameInterfaceJob);
+      gameInputController = new GameInputController(view, this, gameInterfaceJob);
       view.content.addMouseMotionListener(gameInputController);
       view.content.addMouseListener(gameInputController);
+
    }
 
    private boolean dicesLunched = false;
@@ -56,7 +59,9 @@ public class GameScene extends Scene {
       final Button dicesButton = new Button("DICES", 65, 65, Button.Position.end, Button.Position.middle,
             -10, -160, dim,
             "Lunch dices");
-      dicesButton.disabled = this.gameInterfaceJob.isAllDisabled() || this.getDicesLunched() || GameVariables.turn < 0
+      dicesButton.disabled = this.gameInterfaceJob.isAllDisabled()
+            || this.getDicesLunched()
+            || GameVariables.turn < 0
             || !(GameVariables.playerToPlay instanceof Player.Me);
 
       //
@@ -64,7 +69,9 @@ public class GameScene extends Scene {
       final Button buildButton = new Button("BUILD", 65, 65, Button.Position.end, Button.Position.middle,
             -10, -80, dim,
             "Build");
-      buildButton.disabled = this.gameInterfaceJob.isAllDisabled() || !this.getDicesLunched() || GameVariables.turn < 0
+      buildButton.disabled = this.gameInterfaceJob.isAllDisabled()
+            || !this.getDicesLunched()
+            || GameVariables.turn < 0
             || !(GameVariables.playerToPlay instanceof Player.Me);
 
       //
@@ -72,17 +79,22 @@ public class GameScene extends Scene {
       final Button cardButton = new Button("CARD", 65, 65, Button.Position.end, Button.Position.middle,
             -10, 0, dim,
             "Card");
-      cardButton.disabled = this.gameInterfaceJob.isAllDisabled() || !this.getDicesLunched() || GameVariables.turn < 0
-      // || !GameVariables.playerToPlay.canBuyCard()
-      // TODO: uncomment
-      ;
+      cardButton.disabled = this.gameInterfaceJob.isAllDisabled()
+            || !this.getDicesLunched()
+            || GameVariables.turn < 0
+            || !GameVariables.playerToPlay.canBuyCard()
+            || !(GameVariables.playerToPlay instanceof Player.Me);
 
       //
 
       final Button tradeButton = new Button("TRADE", 65, 65, Button.Position.end, Button.Position.middle,
             -10, 80, dim,
             "Trade");
-      tradeButton.disabled = this.gameInterfaceJob.isAllDisabled() || !this.getDicesLunched() || GameVariables.turn < 0;
+      tradeButton.disabled = this.gameInterfaceJob.isAllDisabled()
+            || !this.getDicesLunched()
+            || GameVariables.turn < 0
+            || !(GameVariables.playerToPlay instanceof Player.Me)
+            || true; // TODO: trade...
 
       //
 
@@ -130,7 +142,6 @@ public class GameScene extends Scene {
       } else {
          this.setDicesLunched(false);
       }
-
    }
 
    private boolean roadBuildingMode = false;

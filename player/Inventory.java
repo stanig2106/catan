@@ -31,6 +31,11 @@ public class Inventory extends RessourceCount {
       });
    }
 
+   @Override
+   public boolean isEmpty() {
+      return getTotal() == 0;
+   }
+
    // class Exception
    public static class NOT_ENOUGH_RESSOURCES extends Exception {
       public NOT_ENOUGH_RESSOURCES() {

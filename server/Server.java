@@ -25,12 +25,17 @@ public class Server {
       // infos
       server.createContext("/ressources", new RessourcesHandler());
       server.createContext("/cardsCount", new CardsCountHandler());
+      server.createContext("/robberCount", new RobberCountHandler());
 
       // plays
       server.createContext("/wait", new WaitHandler());
 
       server.createContext("/dices", new DicesHandler());
       server.createContext("/buyCard", new BuyCardHandler());
+      server.createContext("/steal", new StealHandler());
+      server.createContext("/stealAll", new StealAllHandler());
+      server.createContext("/draw2", new Draw2Handler());
+      server.createContext("/placeRobber", new PlaceRobberHandler());
       server.createContext("/playCard", new PlayCardHandler());
       server.createContext("/build", new BuildHandler());
       server.createContext("/done", new DoneHandler());

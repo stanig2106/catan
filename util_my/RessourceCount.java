@@ -2,6 +2,7 @@ package util_my;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BinaryOperator;
 import java.util.stream.Stream;
 
@@ -38,6 +39,13 @@ public abstract class RessourceCount extends HashMap<Ressources, Integer> {
       this.replace(ressource, this.get(ressource) - value);
    }
 
+   public Optional<Ressources> minusOneRandom() {
+      return this.entrySet().stream().filter(entry -> entry.getValue() > 0).findAny().map(res -> {
+         this.minus(res.getKey());
+         return res.getKey();
+      });
+   }
+
    public void add(List<Ressources> ressources) {
       ressources.forEach(ressource -> {
          this.add(ressource);
@@ -53,11 +61,6 @@ public abstract class RessourceCount extends HashMap<Ressources, Integer> {
    }
 
    public int getTotal() {
-      return this.values().stream().reduce(0, new BinaryOperator<Integer>() {
-         @Override
-         public Integer apply(Integer arg0, Integer arg1) {
-            return arg0 + arg1;
-         }
-      });
+      return this.values().stream().mapToInt(Integer::intValue).sum();
    }
 }

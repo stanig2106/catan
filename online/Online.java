@@ -6,10 +6,13 @@ import java.util.function.Consumer;
 
 import globalVariables.GameVariables;
 import map.CatanMap;
+import map.ressources.Cost;
+import map.ressources.Ressources;
 import online.onlinePlays.OBuild;
 import online.onlinePlays.ODices;
 import online.onlinePlays.ODone;
 import online.onlinePlays.OPlayCard;
+import player.Player;
 import player.developmentCards.Card;
 import util_my.Coord;
 import util_my.Param;
@@ -241,8 +244,6 @@ public final class Online {
                         .await();
 
             resParams = Params.parse(res);
-            if (!res.equals("wait"))
-               System.out.println("watched : " + res);
 
             if (resParams.get("error").isPresent()) {
                reject.accept(new Exception(resParams.get("error").get()));
@@ -256,6 +257,21 @@ public final class Online {
             if (resParams.contain("buildType"))
                OBuild.exec(resParams.get("buildType").get(), Coord.fromWeb(resParams.get("coord").get()),
                      resParams.get("position").get());
+
+            if (resParams.contain("steal"))
+               GameVariables.getMe().inventory.minus(Ressources.fromWeb(resParams.get("steal").get()));
+
+            if (resParams.contain("stealAll")) {
+               GameVariables.getMe().inventory.set(Ressources.fromWeb(resParams.get("steal").get()), 0);
+               System.out.println("steal all !");
+            }
+
+            if (resParams.contain("moveRobber"))
+               GameVariables.map.robber.position = GameVariables.map
+                     .get(Coord.fromWeb(resParams.get("moveRobber").get()));
+
+            GameVariables.view.backgroundPainting.forceUpdatePainting().await();
+            GameVariables.view.background.repaint();
          }
 
          ODone.exec(Integer.parseInt(resParams.get("newTurn").get()),
@@ -292,7 +308,6 @@ public final class Online {
                new Param("position", cornerOrSide)).send()
                      .await();
          Params resParams = Params.parse(res);
-         System.out.println(res);
 
          if (resParams.get("error").isPresent()) {
             reject.accept(new Exception(resParams.get("error").get()));
@@ -347,4 +362,99 @@ public final class Online {
       });
    }
 
+   public static Promise<Void> steal(int idOfPlayer) {
+      return new Promise<Void>((resolve, reject) -> {
+         if (notLogged(reject))
+            return;
+
+         final String res = new Request(url + "/steal",
+               new Param("sender", personalUuid.get().toString()),
+               new Param("room", joinedRoomUuid.get().toString()),
+               new Param("id", "" + idOfPlayer)).send()
+                     .await();
+
+         final Params resParams = Params.parse(res);
+
+         if (resParams.get("error").isPresent()) {
+            reject.accept(new Exception(resParams.get("error").get()));
+            return;
+         }
+
+         GameVariables.getMe().inventory.add(Ressources.fromWeb(resParams.get("ressource").get()));
+         resolve.accept(null);
+      });
+   }
+
+   public static Promise<Void> stealAll(Ressources ressource) {
+      return new Promise<Void>((resolve, reject) -> {
+         if (notLogged(reject))
+            return;
+
+         final String res = new Request(url + "/stealAll",
+               new Param("sender", personalUuid.get().toString()),
+               new Param("room", joinedRoomUuid.get().toString()),
+               new Param("ressource", "" + ressource.toWeb())).send()
+                     .await();
+
+         final Params resParams = Params.parse(res);
+
+         if (resParams.get("error").isPresent()) {
+            reject.accept(new Exception(resParams.get("error").get()));
+            return;
+         }
+
+         GameVariables.getMe().inventory.set(ressource, Integer.parseInt(resParams.get("newCount").get()));
+         resolve.accept(null);
+      });
+   }
+
+   public static Promise<Void> draw2Ressources(Ressources ressource1, Ressources ressource2) {
+      return new Promise<Void>((resolve, reject) -> {
+         if (notLogged(reject))
+            return;
+
+         final String res = new Request(url + "/draw2",
+               new Param("sender", personalUuid.get().toString()),
+               new Param("room", joinedRoomUuid.get().toString()),
+               new Param("ressource2", "" + ressource2.toWeb()),
+               new Param("ressource1", "" + ressource1.toWeb())).send()
+                     .await();
+
+         final Params resParams = Params.parse(res);
+
+         if (resParams.get("error").isPresent()) {
+            reject.accept(new Exception(resParams.get("error").get()));
+            return;
+         }
+
+         GameVariables.getMe().inventory.add(ressource1);
+         GameVariables.getMe().inventory.add(ressource2);
+
+         resolve.accept(null);
+      });
+   }
+
+   public static Promise<Void> placeRobber(Coord coord) {
+      return new Promise<Void>((resolve, reject) -> {
+         if (notLogged(reject))
+            return;
+
+         final String res = new Request(url + "/placeRobber",
+               new Param("sender", personalUuid.get().toString()),
+               new Param("room", joinedRoomUuid.get().toString()),
+               new Param("position", coord.toWeb())).send()
+                     .await();
+
+         final Params resParams = Params.parse(res);
+
+         if (resParams.get("error").isPresent()) {
+            reject.accept(new Exception(resParams.get("error").get()));
+            return;
+         }
+
+         GameVariables.getMe().incrRobberCount();
+
+         resolve.accept(null);
+      });
+   }
 }

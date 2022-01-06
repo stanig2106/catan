@@ -22,11 +22,7 @@ abstract class Handler implements HttpHandler {
             e.printStackTrace();
             response = "error=internal_error:" + e;
          }
-         if (Config.serverMode && !response.equals("wait")) {
-            System.out.println("serv in : " + req.getRequestURI() + " params : " +
-                  Params.parse(body));
-            System.out.println("response : " + response);
-         }
+
          req.sendResponseHeaders(200, response.length());
          OutputStream os = req.getResponseBody();
          os.write(response.getBytes());

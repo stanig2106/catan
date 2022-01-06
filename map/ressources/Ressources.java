@@ -22,4 +22,12 @@ public enum Ressources {
    public Promise<Image> getImage() {
       return Ressources.images.get(this);
    }
+
+   public String toWeb() {
+      return this.ordinal() + "";
+   }
+
+   public static Ressources fromWeb(String s) {
+      return Ressources.values()[Integer.parseInt(s)];
+   }
 }

@@ -8,6 +8,8 @@ import com.sun.net.httpserver.HttpExchange;
 
 import map.Land.BUILD;
 import map.constructions.City;
+import map.ressources.Ressources;
+import player.Player;
 import player.Inventory.NOT_ENOUGH_RESSOURCES;
 import player.developmentCards.Card;
 import player.plays.Build;
@@ -103,7 +105,6 @@ class BuildHandler extends Handler {
       }
 
       final String play = params.without("sender", "room").getPostDataString();
-      System.out.println("server send : " + play);
       room.get().addMove(play);
       return play;
    }
@@ -150,9 +151,8 @@ class BuyCardHandler extends Handler {
       if (!room.get().playerToPlay.uuid.equals(sender.get()))
          return "error=illegal:not_your_turn";
 
-      // TODO: uncomment
-      // if (!room.get().playerToPlay.canBuyCard())
-      // return "illegal:NOT_ENOUGH_RESSOURCES";
+      if (!room.get().playerToPlay.canBuyCard())
+         return "illegal:NOT_ENOUGH_RESSOURCES";
 
       if (room.get().poolCards.isEmpty())
          room.get().poolCards.addAll(Card.newPoolCards());
@@ -193,5 +193,113 @@ class PlayCardHandler extends Handler {
       final String play = "card=" + card.toWeb();
       room.get().addMove(play);
       return play;
+   }
+}
+
+class StealHandler extends Handler {
+   @Override
+   String getResponse(HttpExchange req, Params params) throws IOException {
+      final Optional<Room> room = params.get("room").map(UUID::fromString).map(ServerVariables::getRoom)
+            .orElse(Optional.empty());
+      final Optional<UUID> sender = params.get("sender").map(UUID::fromString);
+      if (room.isEmpty())
+         return params.get("room").isEmpty() ? "error=bad_req:no_room" : "error=room_not_found";
+      if (sender.isEmpty())
+         return "error=bad_req:no_sender";
+
+      if (!room.get().playerToPlay.uuid.equals(sender.get()))
+         return "error=illegal:not_your_turn";
+
+      int idToSteal = Integer.parseInt(params.get("id").get());
+
+      Optional<Player.Server> playerToSteal = room.get().getPlayer(idToSteal);
+
+      if (playerToSteal.isEmpty())
+         return "error=illegal:id_not_found";
+
+      return playerToSteal.get().inventory.minusOneRandom().map(staledRessource -> {
+         room.get().playerToPlay.inventory.add(staledRessource);
+         playerToSteal.get().addWaitedPlays("steal=" + staledRessource.toWeb());
+         return "ressource=" + staledRessource.toWeb();
+      }).orElse("error=illegal:not_enough_ressource");
+   }
+}
+
+class StealAllHandler extends Handler {
+   @Override
+   String getResponse(HttpExchange req, Params params) throws IOException {
+      final Optional<Room> room = params.get("room").map(UUID::fromString).map(ServerVariables::getRoom)
+            .orElse(Optional.empty());
+      final Optional<UUID> sender = params.get("sender").map(UUID::fromString);
+      if (room.isEmpty())
+         return params.get("room").isEmpty() ? "error=bad_req:no_room" : "error=room_not_found";
+      if (sender.isEmpty())
+         return "error=bad_req:no_sender";
+
+      if (!room.get().playerToPlay.uuid.equals(sender.get()))
+         return "error=illegal:not_your_turn";
+
+      final Ressources ressource = Ressources.fromWeb(params.get("ressource").get());
+
+      room.get().players.stream().forEach(player -> {
+         if (player == room.get().playerToPlay)
+            return;
+         int count = player.inventory.getCount(ressource);
+         player.inventory.set(ressource, 0);
+         room.get().playerToPlay.inventory.add(ressource, count);
+      });
+
+      room.get().addMove("stealAll=" + ressource.toWeb());
+
+      return "newCount=" + room.get().playerToPlay.inventory.getCount(ressource);
+   }
+}
+
+class PlaceRobberHandler extends Handler {
+   @Override
+   String getResponse(HttpExchange req, Params params) throws IOException {
+      final Optional<Room> room = params.get("room").map(UUID::fromString).map(ServerVariables::getRoom)
+            .orElse(Optional.empty());
+      final Optional<UUID> sender = params.get("sender").map(UUID::fromString);
+      if (room.isEmpty())
+         return params.get("room").isEmpty() ? "error=bad_req:no_room" : "error=room_not_found";
+      if (sender.isEmpty())
+         return "error=bad_req:no_sender";
+
+      if (!room.get().playerToPlay.uuid.equals(sender.get()))
+         return "error=illegal:not_your_turn";
+
+      final Coord position = Coord.fromWeb(params.get("position").get());
+
+      room.get().map.robber.position = room.get().map.get(position);
+      room.get().playerToPlay.incrRobberCount();
+
+      room.get().addMove("moveRobber=" + position.toWeb());
+
+      return "";
+   }
+}
+
+class Draw2Handler extends Handler {
+   @Override
+   String getResponse(HttpExchange req, Params params) throws IOException {
+      final Optional<Room> room = params.get("room").map(UUID::fromString).map(ServerVariables::getRoom)
+            .orElse(Optional.empty());
+      final Optional<UUID> sender = params.get("sender").map(UUID::fromString);
+      if (room.isEmpty())
+         return params.get("room").isEmpty() ? "error=bad_req:no_room" : "error=room_not_found";
+      if (sender.isEmpty())
+         return "error=bad_req:no_sender";
+
+      if (!room.get().playerToPlay.uuid.equals(sender.get()))
+         return "error=illegal:not_your_turn";
+
+      final Ressources ressource1 = Ressources.fromWeb(params.get("ressource1").get());
+      final Ressources ressource2 = Ressources.fromWeb(params.get("ressource2").get());
+
+      room.get().playerToPlay.inventory.add(ressource1);
+      room.get().playerToPlay.inventory.add(ressource2);
+
+      return "";
    }
 }

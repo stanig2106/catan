@@ -164,7 +164,7 @@ public abstract class Land {
    public boolean canSetBuilding(LandCorner corner, Building building) {
       try {
          this.trowIfIllegalBuild(this.corners.get(corner).building, building, this.corners.get(corner));
-      } catch (BUILD e) {
+      } catch (BUILD _e) {
          return false;
       }
       return true;
@@ -214,26 +214,32 @@ public abstract class Land {
    }
 
    public boolean canSetRoute(LandSide side, Route route) { // FIXME: check color player
-      if (this.borders.get(side).adjacentBorders.stream().noneMatch(adjacentBorder -> adjacentBorder.route.isPresent())
-            && this.borders.get(side).adjacentCorners.stream()
-                  .noneMatch(adjacentCorner -> adjacentCorner.building.isPresent()))
+      try {
+         throwIfCanNotSetRoute(side, route);
+      } catch (BUILD _e) {
          return false;
-      return !this.borders.get(side).route.isPresent();
+      }
+      return true;
    }
 
    public void throwIfCanNotSetRoute(LandSide side, Route route) throws BUILD {
-      System.out.println("TODO: Land::throwIfCanNotSetRoute");
-      // TODO:
+      if (this.borders.get(side).route.isPresent())
+         throw new BUILD.ROUTE_ON_ROUTE();
+      if (this.borders.get(side).adjacentBorders.stream().noneMatch(
+            adjacentBorder -> adjacentBorder.route.isPresent() && adjacentBorder.route.get().owner == route.owner)
+            && this.borders.get(side).adjacentCorners.stream()
+                  .noneMatch(adjacentCorner -> adjacentCorner.building.isPresent()
+                        && adjacentCorner.building.get().owner == route.owner))
+         throw new BUILD.ORPHELIN_ROUTE();
    }
 
    public void setRoute(LandSide side, Route route) throws BUILD {
-      if (this.borders.get(side).adjacentBorders.stream().noneMatch(adjacentBorder -> adjacentBorder.route.isPresent())
-            && this.borders.get(side).adjacentCorners.stream()
-                  .noneMatch(adjacentCorner -> adjacentCorner.building.isPresent()))
-         throw new BUILD.ORPHELIN_ROUTE(); // FIXME: sometime, throw but false (top of the map, check links between
-                                           // lands)
-      if (this.borders.get(side).route.isPresent())
-         throw new BUILD.ROUTE_ON_ROUTE();
+      try {
+         throwIfCanNotSetRoute(side, route);
+      } catch (BUILD e) {
+         throw e;
+      }
+
       this.borders.get(side).route = Optional.of(route);
       route.addToPlayer();
    }

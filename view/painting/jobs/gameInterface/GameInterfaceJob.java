@@ -212,7 +212,7 @@ class PlayersInterfaceJob extends PaintingJob {
       g.setColor(Color.white);
       int i = 0;
       Stream.of(
-            new Property(40 * i++, PlayersInterfaceJob.swordImage.await(), 12, 0),
+            new Property(40 * i++, PlayersInterfaceJob.swordImage.await(), 12, player.getRobberCount()),
             new Property(40 * i++, PlayersInterfaceJob.pathImage.await(), 17, "-"),
             new Property(40 * i++, PlayersInterfaceJob.ressourceCardImage.await(), 17, player.inventory.getTotal()),
             new Property(40 * i++, PlayersInterfaceJob.developmentCardImage.await(), 17,
@@ -272,7 +272,7 @@ class CardInterfaceJob extends PaintingJob {
          g.drawImage(MenuJob.ParchemineTexture.await(), (int) (dim.width / 2. + xOffset * 155) - 75,
                dim.height - 70 - 40, 150, 40, imageObserver);
 
-      if (playable) {
+      if (playable && !GameVariables.scenes.gameScene.gameInputController.sudoDisable) {
          final Stroke defaultStroke = g.getStroke();
          g.setStroke(new BasicStroke(4));
          g.setComposite(AlphaComposite.SrcOver.derive(0.5f));
@@ -334,6 +334,7 @@ class RessourcesInterfaceJob extends PaintingJob {
 
       g.setColor(new Color(22, 27, 34));
       g.fillRect(0, (int) (dim.getHeight() - 70), (int) dim.getWidth(), 5);
+      g.setColor(Color.white);
       int i = -2;
       final int offset = 100;
       Stream.of(

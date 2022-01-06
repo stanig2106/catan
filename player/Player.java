@@ -1,6 +1,7 @@
 package player;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import globalVariables.GameVariables;
 
@@ -24,6 +26,7 @@ import player.developmentCards.Card;
 import util_my.Pair;
 import util_my.Param;
 import util_my.Params;
+import util_my.StreamUtils;
 
 public abstract class Player {
    public Inventory inventory = new Inventory();
@@ -40,6 +43,7 @@ public abstract class Player {
    final public int id;
    public int freeRoute = 0;
    public int freeColony = 0;
+   private int robberCount = 0;
 
    Player(String name, int id) {
       this.name = name;
@@ -74,12 +78,23 @@ public abstract class Player {
    }
 
    public int getPublicScore() {
-      return buildings.stream().mapToInt(building -> (building instanceof City ? 2 : 1)).sum();
+      return buildings.stream().mapToInt(building -> (building instanceof City ? 2 : 1)).sum() +
+            (Stream.of(GameVariables.players).collect(StreamUtils
+                  .maxSupCollector((Player p1, Player p2) -> Integer.compare(p1.getRobberCount(), p2.getRobberCount())))
+                  .map(player -> player.id == this.id).orElse(false) ? 1 : 0);
    }
 
    public int getScore() {
       return this.getPublicScore()
             + (int) this.inventory.cards.stream().filter(card -> card.getKey().equals(Card.Library)).count();
+   }
+
+   public int getRobberCount() {
+      return robberCount;
+   }
+
+   public void incrRobberCount() {
+      this.robberCount++;
    }
 
    public static class Me extends Player {
@@ -128,6 +143,13 @@ public abstract class Player {
                return Integer.parseInt(Params.parse(res).get("count").get());
             }
          };
+      }
+
+      @Override
+      public int getRobberCount() {
+         String res = new Request(online.Online.url + "/robberCount", new Param("id", "" + this.id),
+               new Param("room", online.Online.joinedRoom.get().uuid.toString())).send().await();
+         return Integer.parseInt(Params.parse(res).get("count").get());
       }
 
    }

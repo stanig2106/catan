@@ -5,6 +5,7 @@ import java.util.Optional;
 import globalVariables.GameVariables;
 import globalVariables.ViewVariables;
 import map.constructions.City;
+import player.Player;
 import util_my.Pair;
 
 final public class ODices {
@@ -29,8 +30,13 @@ final public class ODices {
                      });
                   });
                });
+
       GameVariables.scenes.gameScene.gameInterfaceJob.lastDice = Optional.of(Pair.of(dice1, dice2));
       GameVariables.scenes.gameScene.gameInterfaceJob.setAllDisabled(false);
+
+      if (dice1 + dice2 == 7 && (GameVariables.playerToPlay instanceof Player.Me))
+         GameVariables.scenes.gameScene.robberScene.enable();
+
       if (GameVariables.view.backgroundPainting.updatePainting().await())
          GameVariables.view.background.repaint();
 

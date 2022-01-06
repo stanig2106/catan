@@ -16,7 +16,6 @@ public class PlayCard extends Play {
       final Card card = player.inventory.cards.get(indexOfCard).getKey();
       player.inventory.cards.remove(indexOfCard);
 
-      System.out.println(card + " played");
    }
 
 }

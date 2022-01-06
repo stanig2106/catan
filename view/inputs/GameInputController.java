@@ -5,6 +5,7 @@ import java.awt.event.MouseEvent;
 import java.awt.image.ImageObserver;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.IntStream;
 
 import globalVariables.GameVariables;
@@ -22,6 +23,7 @@ import util_my.StreamUtils;
 import util_my.Timeout;
 import view.View;
 import view.View.ListenerSave;
+import view.inputs.BuildInputController.Modes;
 import view.painting.Painting.PaintingJob;
 import view.painting.jobs.gameInterface.GameInterfaceJob;
 import view.painting.jobs.gameInterface.MenuJob;
@@ -31,6 +33,7 @@ public class GameInputController extends InputController {
    final GameScene gameScene;
    final View view;
    final GameInterfaceJob gameInterfaceJob;
+   public boolean sudoDisable = false;
 
    public GameInputController(View view, GameScene gameScene, GameInterfaceJob gameInterfaceJob) {
       this.view = view;
@@ -66,6 +69,8 @@ public class GameInputController extends InputController {
    @Override
    public void mousePressed(MouseEvent event) {
       final int index;
+      if (sudoDisable)
+         return;
       if ((index = this.gameInterfaceJob.getIndexOfOveredCard()) == -1)
          return;
 
@@ -137,8 +142,10 @@ public class GameInputController extends InputController {
          case "BUILD":
             if (this.gameScene.buildScene.enabled)
                this.gameScene.buildScene.disable();
-            else
+            else {
+               this.gameScene.buildScene.inputController.modes = Modes.byRessources();
                this.gameScene.buildScene.enable();
+            }
 
             view.backgroundPainting.forceUpdatePainting().await();
             view.background.repaint();
