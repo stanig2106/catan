@@ -23,7 +23,7 @@ import util_my.directions.LandCorner;
 import util_my.directions.LandSide;
 
 public final class Online {
-   public static String url = "http://localhost:8080";
+   public static String url = "http://192.168.1.60:3000";
    public static String publicName = "helloName";
    public static Optional<UUID> personalUuid = Optional.empty();
    public static Optional<UUID> joinedRoomUuid = Optional.empty();

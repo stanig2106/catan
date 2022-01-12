@@ -1,31 +1,25 @@
 package player;
 
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.awt.Color;
 import java.util.Deque;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import globalVariables.GameVariables;
-
-import java.awt.*;
-
 import map.constructions.Building;
 import map.constructions.City;
 import map.constructions.Route;
 import map.ressources.Cost;
-import online.Online;
 import online.Request;
 import player.Inventory.NOT_ENOUGH_RESSOURCES;
 import player.developmentCards.Card;
 import util_my.Pair;
 import util_my.Param;
 import util_my.Params;
+import util_my.Promise;
 import util_my.StreamUtils;
 
 public abstract class Player {
@@ -130,26 +124,58 @@ public abstract class Player {
          super(name, id);
          player.Player.Online me = this;
          this.inventory = new Inventory() {
+
+            int lastTotal = 0;
+            Optional<Promise<?>> lastCallTotal = Optional.empty();
+
             public int getTotal() {
-               String res = new Request(online.Online.url + "/ressources", new Param("id", "" + me.id),
-                     new Param("room", online.Online.joinedRoom.get().uuid.toString())).send().await();
-               return Integer.parseInt(Params.parse(res).get("count").get());
+               if (lastCallTotal.isPresent() && lastCallTotal.get().done())
+                  lastCallTotal = Optional.empty();
+
+               if (lastCallTotal.isEmpty())
+                  lastCallTotal = Optional
+                        .of(new Request(online.Online.url + "/ressources", new Param("id", "" + me.id),
+                              new Param("room", online.Online.joinedRoom.get().uuid.toString())).send().then(res -> {
+                                 this.lastTotal = Integer.parseInt(Params.parse(res).get("count").get());
+                              }));
+
+               return lastTotal;
             };
+
+            int lastCardCount = 0;
+            Optional<Promise<?>> lastCallCard = Optional.empty();
 
             @Override
             public int getCardsCount() {
-               String res = new Request(online.Online.url + "/cardsCount", new Param("id", "" + me.id),
-                     new Param("room", online.Online.joinedRoom.get().uuid.toString())).send().await();
-               return Integer.parseInt(Params.parse(res).get("count").get());
+               if (lastCallCard.isPresent() && lastCallCard.get().done())
+                  lastCallCard = Optional.empty();
+
+               if (lastCallCard.isEmpty())
+                  this.lastCallCard = Optional
+                        .of(new Request(online.Online.url + "/cardsCount", new Param("id", "" + me.id),
+                              new Param("room", online.Online.joinedRoom.get().uuid.toString())).send().then(res -> {
+                                 this.lastCardCount = Integer.parseInt(Params.parse(res).get("count").get());
+                              }));
+               return lastCardCount;
             }
          };
       }
 
+      int lastRobberCount = 0;
+      Optional<Promise<?>> lastCallRobber = Optional.empty();
+
       @Override
       public int getRobberCount() {
-         String res = new Request(online.Online.url + "/robberCount", new Param("id", "" + this.id),
-               new Param("room", online.Online.joinedRoom.get().uuid.toString())).send().await();
-         return Integer.parseInt(Params.parse(res).get("count").get());
+         if (lastCallRobber.isPresent() && lastCallRobber.get().done())
+            lastCallRobber = Optional.empty();
+
+         if (lastCallRobber.isEmpty())
+            this.lastCallRobber = Optional
+                  .of(new Request(online.Online.url + "/robberCount", new Param("id", "" + this.id),
+                        new Param("room", online.Online.joinedRoom.get().uuid.toString())).send().then(res -> {
+                           this.lastRobberCount = Integer.parseInt(Params.parse(res).get("count").get());
+                        }));
+         return lastRobberCount;
       }
 
    }

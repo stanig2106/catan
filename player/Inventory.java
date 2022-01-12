@@ -12,7 +12,7 @@ public class Inventory extends RessourceCount {
    public List<Pair<Card, Boolean>> cards = new ArrayList<Pair<Card, Boolean>>();
 
    Inventory() {
-      super();
+      super(100, 100, 100, 100, 100);
    }
 
    public int getCardsCount() {

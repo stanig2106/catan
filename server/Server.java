@@ -14,7 +14,7 @@ public class Server {
    final HttpServer server;
 
    Server() throws IOException {
-      this.server = HttpServer.create(new InetSocketAddress("localhost", 8080), 0);
+      this.server = HttpServer.create(new InetSocketAddress("192.168.1.60", 3000), 0);
       // init
       server.createContext("/rooms", new RoomsHandler());
       server.createContext("/room", new RoomHandler());

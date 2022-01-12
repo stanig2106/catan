@@ -71,12 +71,12 @@ public class Request {
             writer.flush();
             writer.close();
             os.close();
-            int responseCode = conn.getResponseCode();
+            final int responseCode = conn.getResponseCode();
 
             String response = "";
             if (responseCode == 200) {
                String line;
-               BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+               final BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                while ((line = br.readLine()) != null) {
                   response += line;
                }
@@ -86,10 +86,10 @@ public class Request {
 
             resolve.accept(response);
             return;
-         } catch (SocketTimeoutException timeoutException) {
+         } catch (final SocketTimeoutException timeoutException) {
             reject.accept(new TIMEOUT(timeoutException));
             return;
-         } catch (Exception e) {
+         } catch (final Exception e) {
             e.printStackTrace();
             reject.accept(e);
             return;
