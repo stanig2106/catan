@@ -23,7 +23,7 @@ import util_my.directions.LandCorner;
 import util_my.directions.LandSide;
 
 public final class Online {
-   public static String url = "http://192.168.1.60:3000";
+   public static String url = "http://139.177.182.25:80";
    public static String publicName = "helloName";
    public static Optional<UUID> personalUuid = Optional.empty();
    public static Optional<UUID> joinedRoomUuid = Optional.empty();
@@ -261,10 +261,8 @@ public final class Online {
             if (resParams.contain("steal"))
                GameVariables.getMe().inventory.minus(Ressources.fromWeb(resParams.get("steal").get()));
 
-            if (resParams.contain("stealAll")) {
-               GameVariables.getMe().inventory.set(Ressources.fromWeb(resParams.get("steal").get()), 0);
-               System.out.println("steal all !");
-            }
+            if (resParams.contain("stealAll"))
+               GameVariables.getMe().inventory.set(Ressources.fromWeb(resParams.get("stealAll").get()), 0);
 
             if (resParams.contain("moveRobber"))
                GameVariables.map.robber.position = GameVariables.map
